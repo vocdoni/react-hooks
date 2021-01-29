@@ -1,0 +1,79 @@
+{
+    "name": "@vocdoni/react-hooks",
+    "version": "0.1.0",
+    "main": "dist/index.js",
+    "module": "dist/react-hooks.esm.js",
+    "typings": "dist/index.d.ts",
+    "scripts": {
+        "start": "tsdx watch",
+        "build": "tsdx build",
+        "test": "tsdx test --passWithNoTests",
+        "lint": "tsdx lint",
+        "prepare": "tsdx build",
+        "size": "size-limit",
+        "analyze": "size-limit --why"
+    },
+    "keywords": [
+        "vocdoni",
+        "react",
+        "hooks",
+        "gateway",
+        "pool"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/vocdoni/react-hooks.git"
+    },
+    "bugs": {
+        "url": "https://github.com/vocdoni/react-hooks/issues"
+    },
+    "homepage": "https://github.com/vocdoni/react-hooks#readme",
+    "author": "Vocdoni",
+    "files": [
+        "dist",
+        "src"
+    ],
+    "engines": {
+        "node": ">=14"
+    },
+    "peerDependencies": {
+        "react": "^16.12.0",
+        "dvote-js": "^0.20.3",
+        "use-wallet": "^0.8.1"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "tsdx lint"
+        }
+    },
+    "prettier": {
+        "semi": false,
+        "singleQuote": true
+    },
+    "size-limit": [
+        {
+            "path": "dist/react-hooks.cjs.production.min.js",
+            "limit": "10 KB"
+        },
+        {
+            "path": "dist/react-hooks.esm.js",
+            "limit": "10 KB"
+        }
+    ],
+    "devDependencies": {
+        "@size-limit/preset-small-lib": "^4.9.1",
+        "@types/react": "^16.14.2",
+        "@types/react-dom": "^16.9.10",
+        "husky": "^4.3.8",
+        "react": "^16.12.0",
+        "react-dom": "^16.12.0",
+        "size-limit": "^4.9.1",
+        "tsdx": "^0.14.1",
+        "tslib": "^2.1.0",
+        "typescript": "^3.9.7"
+    },
+    "dependencies": {
+        "dvote-js": "^0.20.3",
+        "use-wallet": "^0.8.1"
+    }
+}
