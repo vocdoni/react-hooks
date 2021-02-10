@@ -21,12 +21,13 @@ import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses,
 import { UseWalletProvider } from "use-wallet"
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
+const ENVIRONMENT = "dev" 
 const NETWORK_ID = "goerli"
 const CHAIN_ID = 5
 
 const MyApp = () => {
   return (
-    <UsePoolProvider bootnodeUri={BOOTNODE_URI} networkId={NETWORK_ID}>
+    <UsePoolProvider bootnodeUri={BOOTNODE_URI} networkId={NETWORK_ID} environment={ENVIRONMENT}>
       <UseProcessProvider>
         <UseWalletProvider chainId={CHAIN_ID}>
           

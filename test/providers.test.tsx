@@ -3,12 +3,17 @@ import * as ReactDOM from 'react-dom'
 import { UsePoolProvider, UseProcessProvider } from '../src'
 
 const BOOTNODE_URI = 'https://bootnodes.vocdoni.net/gateways.dev.json'
+const ENVIRONMENT = 'dev'
 
 describe('it', () => {
   it('renders the UsePoolProvider without crashing', () => {
     const div = document.createElement('div')
     ReactDOM.render(
-      <UsePoolProvider networkId="goerli" bootnodeUri={BOOTNODE_URI}>
+      <UsePoolProvider
+        networkId="goerli"
+        bootnodeUri={BOOTNODE_URI}
+        environment={ENVIRONMENT}
+      >
         <div />
       </UsePoolProvider>,
       div

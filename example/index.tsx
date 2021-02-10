@@ -7,6 +7,7 @@ import { useWallet, UseWalletProvider } from "use-wallet"
 import { VotingApi } from 'dvote-js'
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
+const ENVIRONMENT = "dev"
 const NETWORK_ID = "goerli"
 const CHAIN_ID = 5
 const PROCESS_IDS = [
@@ -17,7 +18,7 @@ const PROCESS_IDS = [
 
 const App = () => {
   return (
-    <UsePoolProvider bootnodeUri={BOOTNODE_URI} networkId={NETWORK_ID}>
+    <UsePoolProvider bootnodeUri={BOOTNODE_URI} networkId={NETWORK_ID} environment={ENVIRONMENT}>
       <UseProcessProvider>
         <UseWalletProvider chainId={CHAIN_ID}>
           <div>

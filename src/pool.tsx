@@ -5,7 +5,7 @@ import React, {
   useContext,
   ReactNode
 } from 'react'
-import { EthNetworkID, GatewayPool } from 'dvote-js'
+import { EthNetworkID, GatewayPool, VocdoniEnvironment } from 'dvote-js'
 import { Nullable } from './types'
 
 interface IPoolContext {
@@ -38,10 +38,12 @@ export function usePool() {
 export function UsePoolProvider({
   bootnodeUri,
   networkId,
+  environment,
   children
 }: {
   bootnodeUri: string
   networkId: EthNetworkID
+  environment: VocdoniEnvironment
   children: ReactNode
 }) {
   // Promise holder for requests arriving before the pool is available
@@ -58,7 +60,11 @@ export function UsePoolProvider({
 
     setLoading(true)
 
-    GatewayPool.discover({ bootnodesContentUri: bootnodeUri, networkId })
+    GatewayPool.discover({
+      bootnodesContentUri: bootnodeUri,
+      networkId: networkId,
+      environment: environment
+    })
       .then(discoveredPool => {
         newPool = discoveredPool
 
