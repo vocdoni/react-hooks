@@ -89,7 +89,7 @@ export function UsePoolProvider({
     return () => {
       newPool?.disconnect?.()
     }
-  }, [bootnodeUri, networkId])
+  }, [environment, bootnodeUri, networkId])
 
   // Manual refresh
   const refresh = () => {

@@ -121,17 +121,6 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
   const processes = useRef(new Map<string, ProcessInfo>())
   const { poolPromise } = usePool()
 
-  const resolveProcessInfo: (
-    processId: string
-  ) => Promise<Nullable<ProcessInfo>> = useCallback((processId: string) => {
-    if (!processId) return Promise.resolve(null)
-    else if (processes.current.has(processId)) {
-      // cached
-      return Promise.resolve(processes.current.get(processId) || null)
-    }
-    return loadProcessInfo(processId)
-  }, [])
-
   const loadProcessInfo: (
     processId: string
   ) => Promise<ProcessInfo> = useCallback(
@@ -144,6 +133,20 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
         })
     },
     [poolPromise]
+  )
+
+  const resolveProcessInfo: (
+    processId: string
+  ) => Promise<Nullable<ProcessInfo>> = useCallback(
+    (processId: string) => {
+      if (!processId) return Promise.resolve(null)
+      else if (processes.current.has(processId)) {
+        // cached
+        return Promise.resolve(processes.current.get(processId) || null)
+      }
+      return loadProcessInfo(processId)
+    },
+    [loadProcessInfo]
   )
 
   return (
