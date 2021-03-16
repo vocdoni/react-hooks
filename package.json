@@ -78,7 +78,7 @@
         "typescript": "^3.9.7"
     },
     "dependencies": {
-        "dvote-js": "^0.26.2",
+        "dvote-js": "^1.0.1",
         "use-wallet": "^0.8.1"
     }
 }
