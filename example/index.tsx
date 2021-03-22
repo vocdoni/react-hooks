@@ -1,15 +1,13 @@
 import 'react-app-polyfill/ie11'
 import * as React from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import * as ReactDOM from 'react-dom'
-import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses, useSigner } from '../.'
-import { useWallet, UseWalletProvider } from "use-wallet"
+import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses } from '../.'
 import { VotingApi } from 'dvote-js'
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
 const ENVIRONMENT = "dev"
 const NETWORK_ID = "goerli"
-const CHAIN_ID = 5
 const PROCESS_IDS = [
   "0x5f52ac0dac11f163b282fa5bbea25fbeded4c9e3503bfbef290802950eb65679",
   "0xe3d34b7b6ddd0ec90b045b3ab9f50cb8af65973e6ca8002b53f9d94e48cb78c6",
@@ -20,14 +18,11 @@ const App = () => {
   return (
     <UsePoolProvider bootnodeUri={BOOTNODE_URI} networkId={NETWORK_ID} environment={ENVIRONMENT}>
       <UseProcessProvider>
-        <UseWalletProvider chainId={CHAIN_ID}>
-          <div>
-            <PoolComponent />
-            <ProcessComponent />
-            <ProcessesComponent />
-            <SignerComponent />
-          </div>
-        </UseWalletProvider>
+        <div>
+          <PoolComponent />
+          <ProcessComponent />
+          <ProcessesComponent />
+        </div>
       </UseProcessProvider>
     </UsePoolProvider>
   )
@@ -88,34 +83,6 @@ const ProcessesComponent = () => {
         })
       }
     </ul>
-    {error ? <p>Error: {error}</p> : null}
-  </div>
-}
-
-const SignerComponent = () => {
-  const signer = useSigner()
-  const wallet = useWallet()
-  const [signature, setSignature] = useState("")
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    if (wallet?.account && wallet?.connectors?.injected) return
-
-    wallet.connect("injected")
-  }, [wallet?.account])
-
-  useEffect(() => {
-    if (!signer) return
-
-    signer.signMessage("Test message")
-      .then(setSignature)
-      .catch(err => setError(err?.message || err?.toString()))
-  }, [signer])
-
-  return <div>
-    <h2>Signer</h2>
-    <p>The signer is {signer ? "ready" : "unavailable (Please, install MetaMask)"}</p>
-    {signature ? <p>Signature: {signature}</p> : null}
     {error ? <p>Error: {error}</p> : null}
   </div>
 }

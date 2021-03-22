@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- Removing `useSigner` since it adds no features and depending `useWallet` introduces compatibility problems.
+
 ## 0.3.2
 ## 0.3.1
 ## 0.3.0

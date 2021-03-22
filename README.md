@@ -18,7 +18,6 @@ At the root of your project, add the following providers:
 
 import React, { useEffect, useState } from 'react'
 import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses, useSigner } from '../.'
-import { UseWalletProvider } from "use-wallet"
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
 const ENVIRONMENT = "dev" 
@@ -29,12 +28,10 @@ const MyApp = () => {
   return (
     <UsePoolProvider bootnodeUri={BOOTNODE_URI} networkId={NETWORK_ID} environment={ENVIRONMENT}>
       <UseProcessProvider>
-        <UseWalletProvider chainId={CHAIN_ID}>
-          
-          // ...
-          <MyMainComponent /> 
+        
+        // ...
+        <MyMainComponent /> 
 
-        </UseWalletProvider>
       </UseProcessProvider>
     </UsePoolProvider>
   )
@@ -127,42 +124,6 @@ const ProcessesComponent = () => {
   </div>
 }
 ```
-
-### Signer
-
-`useSigner` uses the `use-wallet` library under the hood and returns an Ethers.js `Signer` object attached to it. You probably want to import `useWallet` as well and manage the Web3 connectivity from there.
-
-```tsx
-const SignerComponent = () => {
-  const signer = useSigner()
-  const wallet = useWallet()
-  const [signature, setSignature] = useState("")
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    if (wallet?.account && wallet?.connectors?.injected) return
-
-    wallet.connect("injected")
-  }, [wallet?.account])
-
-  useEffect(() => {
-    if (!signer) return
-
-    signer.signMessage("Test message")
-      .then(setSignature)
-      .catch(err => setError(err?.message || err?.toString()))
-  }, [signer])
-
-  return <div>
-    <h2>Signer</h2>
-    <p>The signer is {signer ? "ready" : "unavailable (Please, install MetaMask)"}</p>
-    {signature ? <p>Signature: {signature}</p> : null}
-    {error ? <p>Error: {error}</p> : null}
-  </div>
-}
-```
-
-Find out [more details about use-wallet](https://github.com/aragon/use-wallet#readme)
 
 ## Example
 
