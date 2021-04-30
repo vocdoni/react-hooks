@@ -2,27 +2,32 @@ import 'react-app-polyfill/ie11'
 import * as React from 'react'
 import { useEffect } from 'react'
 import * as ReactDOM from 'react-dom'
-import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses } from '../.'
+import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses, UseEntityProvider, useEntity } from '../.'
 import { VotingApi } from 'dvote-js'
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
 const ENVIRONMENT = "dev"
 const NETWORK_ID = "goerli"
+const ENTITY_ID = "0x797B8Eb02e670bcd36AA6146c4766577E8EA9059"
 const PROCESS_IDS = [
-  "0x5f52ac0dac11f163b282fa5bbea25fbeded4c9e3503bfbef290802950eb65679",
-  "0xe3d34b7b6ddd0ec90b045b3ab9f50cb8af65973e6ca8002b53f9d94e48cb78c6",
-  "0xd177bfb170e8691911f93216b62dd1d530ab980309e95ed0ecf287b7b7b348aa"
+  "0x650f13cacb6ae088d80af74403eb656ba9473e3e296f61f165360b1f8358a2dc",
+  "0xba82184882b0e970e659290e8b86bd0ed74cbe168ea9ba0726862eaac9c7a301",
+  "0xf72d00fbcee5fdb7203ad215b8fa13575f4fb66b8d54d466cf49271f6fbba7ed",
+  "0xa7546c7119ad659af93c4980fdd9a48fdb3525853089898d287bad3c99421d3f"
 ]
 
 const App = () => {
   return (
     <UsePoolProvider bootnodeUri={BOOTNODE_URI} networkId={NETWORK_ID} environment={ENVIRONMENT}>
       <UseProcessProvider>
-        <div>
-          <PoolComponent />
-          <ProcessComponent />
-          <ProcessesComponent />
-        </div>
+        <UseEntityProvider>
+          <div>
+            <PoolComponent />
+            <ProcessComponent />
+            <ProcessesComponent />
+            <EntityComponent />
+          </div>
+        </UseEntityProvider>
       </UseProcessProvider>
     </UsePoolProvider>
   )
@@ -83,6 +88,22 @@ const ProcessesComponent = () => {
         })
       }
     </ul>
+    {error ? <p>Error: {error}</p> : null}
+  </div>
+}
+
+const EntityComponent = () => {
+  const { metadata, loading, error } = useEntity(ENTITY_ID)
+
+  return <div>
+    <h2>Entity</h2>
+    <p>The entity details are {loading ? "being loaded" : "ready"}</p>
+    {
+      !metadata ? null : <>
+        <pre>Entity ID: {ENTITY_ID}</pre>
+        <pre>{JSON.stringify(metadata, null, 2)}</pre>
+      </>
+    }
     {error ? <p>Error: {error}</p> : null}
   </div>
 }

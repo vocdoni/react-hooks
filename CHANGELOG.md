@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0
+
+- Adding `useEntity`
+
 ## 0.4.0
 
 - Removing `useSigner` since it adds no features and depending `useWallet` introduces compatibility problems.

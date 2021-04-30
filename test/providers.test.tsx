@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { UsePoolProvider, UseProcessProvider } from '../dist'
+import { UsePoolProvider, UseProcessProvider, UseEntityProvider } from '../dist'
 
 const BOOTNODE_URI = 'https://bootnodes.vocdoni.net/gateways.dev.json'
 const ENVIRONMENT = 'dev'
@@ -27,6 +27,16 @@ describe('it', () => {
       <UseProcessProvider>
         <div />
       </UseProcessProvider>,
+      div
+    )
+    ReactDOM.unmountComponentAtNode(div)
+  })
+  it('renders the UseEntityProvider without crashing', () => {
+    const div = document.createElement('div')
+    ReactDOM.render(
+      <UseEntityProvider>
+        <div />
+      </UseEntityProvider>,
       div
     )
     ReactDOM.unmountComponentAtNode(div)
