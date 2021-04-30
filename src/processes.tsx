@@ -82,7 +82,7 @@ export function useProcesses(processIds: string[]) {
   const [loading, setLoading] = useState(false) // to force rerender after the referenced process infos change
 
   useEffect(() => {
-    if (!processIds || !processIds.length) return
+    if (!processIds || !processIds.length) return () => {}
     let ignore = false
 
     setLoading(true)
