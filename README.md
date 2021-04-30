@@ -17,7 +17,7 @@ At the root of your project, add the following providers:
 ```tsx
 
 import React, { useEffect, useState } from 'react'
-import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses, useSigner } from '../.'
+import { UsePoolProvider, UseProcessProvider, UseEntityProvider, usePool, useProcess, useProcesses, useEntity } from '../.'
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
 const ENVIRONMENT = "dev" 
@@ -28,10 +28,12 @@ const MyApp = () => {
   return (
     <UsePoolProvider bootnodeUri={BOOTNODE_URI} networkId={NETWORK_ID} environment={ENVIRONMENT}>
       <UseProcessProvider>
-        
-        // ...
-        <MyMainComponent /> 
+        <UseEntityProvider>
+          
+          // ...
+          <MyMainComponent /> 
 
+        </UseEntityProvider>
       </UseProcessProvider>
     </UsePoolProvider>
   )
@@ -120,6 +122,30 @@ const ProcessesComponent = () => {
         })
       }
     </ul>
+    {error ? <p>Error: {error}</p> : null}
+  </div>
+}
+```
+
+### Entity metadata
+
+To get a cached version of an entity's metadata:
+
+```tsx
+const entityId = "0x1234..."
+
+const EntityComponent = () => {
+  const { metadata, loading, error } = useEntity(entityId)
+
+  return <div>
+    <h2>Entity</h2>
+    <p>The entity details are {loading ? "being loaded" : "ready"}</p>
+    {
+      !metadata ? null : <>
+        <pre>Entity ID: {entityId}</pre>
+        <pre>{JSON.stringify(metadata, null, 2)}</pre>
+      </>
+    }
     {error ? <p>Error: {error}</p> : null}
   </div>
 }
