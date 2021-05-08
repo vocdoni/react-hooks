@@ -64,6 +64,17 @@ export function useBlockAtDate(date: Date) {
   return { blockHeight, loading, error }
 }
 
+export function useBlockStatus() {
+  const poolContext = useContext(UseBlockStatusContext)
+  if (poolContext === null) {
+    throw new Error(
+      'useDateAtBlock() can only be used on the descendants of <UseBlockStatusProvider />, ' +
+        'please declare it at a higher level.'
+    )
+  }
+  return poolContext
+}
+
 // Backend
 
 export function UseBlockStatusProvider({ children }: { children: ReactNode }) {

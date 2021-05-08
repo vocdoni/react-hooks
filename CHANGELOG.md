@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1
+
+- Adding `useBlockStatus`
+
 ## 0.6.0
 
 - Adding `useDateAtBlock` and `useBlockAtDate`

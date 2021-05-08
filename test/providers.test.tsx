@@ -3,8 +3,7 @@ import * as ReactDOM from 'react-dom'
 import {
   UsePoolProvider,
   UseProcessProvider,
-  UseEntityProvider,
-  UseBlockStatusProvider
+  UseEntityProvider
 } from '../dist'
 
 const BOOTNODE_URI = 'https://bootnodes.vocdoni.net/gateways.dev.json'
