@@ -2,7 +2,7 @@ import 'react-app-polyfill/ie11'
 import * as React from 'react'
 import { useEffect } from 'react'
 import * as ReactDOM from 'react-dom'
-import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses, UseEntityProvider, useEntity } from '../.'
+import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses, UseEntityProvider, useEntity, UseBlockStatusProvider, useDateAtBlock, useBlockAtDate } from '../.'
 import { VotingApi } from 'dvote-js'
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
@@ -21,12 +21,15 @@ const App = () => {
     <UsePoolProvider bootnodeUri={BOOTNODE_URI} networkId={NETWORK_ID} environment={ENVIRONMENT}>
       <UseProcessProvider>
         <UseEntityProvider>
-          <div>
-            <PoolComponent />
-            <ProcessComponent />
-            <ProcessesComponent />
-            <EntityComponent />
-          </div>
+          <UseBlockStatusProvider>
+            <div>
+              <PoolComponent />
+              <ProcessComponent />
+              <ProcessesComponent />
+              <EntityComponent />
+              <DateBlockComponent />
+            </div>
+          </UseBlockStatusProvider>
         </UseEntityProvider>
       </UseProcessProvider>
     </UsePoolProvider>
@@ -104,6 +107,23 @@ const EntityComponent = () => {
         <pre>{JSON.stringify(metadata, null, 2)}</pre>
       </>
     }
+    {error ? <p>Error: {error}</p> : null}
+  </div>
+}
+
+const DateBlockComponent = () => {
+  const targetBlock = 123
+  const targetDate = new Date(2030, 10, 10, 10, 10)
+
+  // Two-way estimation
+  const { date, loading, error } = useDateAtBlock(targetBlock)
+  const { blockHeight } = useBlockAtDate(targetDate)
+
+  return <div>
+    <h2>Date/block estimation</h2>
+    <p>The block status details are {loading ? "being loaded" : "ready"}</p>
+    {!date ? null : <p>Date at block {targetBlock}: {date.toJSON()}</p>}
+    {blockHeight ? <p>Block on {targetDate.toJSON()}: {blockHeight}</p> : null}
     {error ? <p>Error: {error}</p> : null}
   </div>
 }

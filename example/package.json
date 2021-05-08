@@ -8,6 +8,7 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
+    "dvote-js": "^1.5.2",
     "react-app-polyfill": "^1.0.0"
   },
   "alias": {

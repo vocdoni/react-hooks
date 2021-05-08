@@ -29,10 +29,12 @@ const MyApp = () => {
     <UsePoolProvider bootnodeUri={BOOTNODE_URI} networkId={NETWORK_ID} environment={ENVIRONMENT}>
       <UseProcessProvider>
         <UseEntityProvider>
-          
-          // ...
-          <MyMainComponent /> 
+          <UseBlockStatusProvider>
+            
+            // ...
+            <MyMainComponent /> 
 
+          </UseBlockStatusProvider>
         </UseEntityProvider>
       </UseProcessProvider>
     </UsePoolProvider>
@@ -146,6 +148,27 @@ const EntityComponent = () => {
         <pre>{JSON.stringify(metadata, null, 2)}</pre>
       </>
     }
+    {error ? <p>Error: {error}</p> : null}
+  </div>
+}
+```
+
+### Date/block estimation
+
+```tsx
+const DateBlockComponent = () => {
+  const targetBlock = 123
+  const targetDate = new Date(2030, 10, 10, 10, 10)
+
+  // Two-way estimation
+  const { date, loading, error } = useDateAtBlock(targetBlock)
+  const { blockHeight } = useBlockAtDate(targetDate)
+
+  return <div>
+    <h2>Date/block estimation</h2>
+    <p>The block status details are {loading ? "being loaded" : "ready"}</p>
+    {!date ? null : <p>Date at block {targetBlock}: {date.toJSON()}</p>}
+    {blockHeight ? <p>Block on {targetDate.toJSON()}: {blockHeight}</p> : null}
     {error ? <p>Error: {error}</p> : null}
   </div>
 }

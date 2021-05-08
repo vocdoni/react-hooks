@@ -1,6 +1,11 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { UsePoolProvider, UseProcessProvider, UseEntityProvider } from '../dist'
+import {
+  UsePoolProvider,
+  UseProcessProvider,
+  UseEntityProvider,
+  UseBlockStatusProvider
+} from '../dist'
 
 const BOOTNODE_URI = 'https://bootnodes.vocdoni.net/gateways.dev.json'
 const ENVIRONMENT = 'dev'
@@ -41,4 +46,20 @@ describe('it', () => {
     )
     ReactDOM.unmountComponentAtNode(div)
   })
+  // it('renders the UseBlockStatusProvider without crashing', () => {
+  //   const div = document.createElement('div')
+  //   ReactDOM.render(
+  //     <UsePoolProvider
+  //       networkId={NETWORK_ID}
+  //       bootnodeUri={BOOTNODE_URI}
+  //       environment={ENVIRONMENT}
+  //     >
+  //       <UseBlockStatusProvider>
+  //         <div />
+  //       </UseBlockStatusProvider>
+  //     </UsePoolProvider>,
+  //     div
+  //   )
+  //   ReactDOM.unmountComponentAtNode(div)
+  // })
 })
