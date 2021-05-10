@@ -2,7 +2,7 @@ import 'react-app-polyfill/ie11'
 import * as React from 'react'
 import { useEffect } from 'react'
 import * as ReactDOM from 'react-dom'
-import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses, UseEntityProvider, useEntity, UseBlockStatusProvider, useDateAtBlock, useBlockAtDate, useBlockStatus } from '../.'
+import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses, UseEntityProvider, useEntity, UseBlockStatusProvider, useDateAtBlock, useBlockAtDate, useBlockStatus, useBlockHeight } from '../.'
 import { VotingApi } from 'dvote-js'
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
@@ -116,15 +116,17 @@ const DateBlockComponent = () => {
   const targetDate = new Date(2030, 10, 10, 10, 10)
 
   // Two-way estimation
+  const { blockHeight } = useBlockHeight()
   const { blockStatus } = useBlockStatus()
   const { date, loading, error } = useDateAtBlock(targetBlock)
-  const { blockHeight } = useBlockAtDate(targetDate)
+  const { blockHeight: estimatedBlockNumber } = useBlockAtDate(targetDate)
 
   return <div>
     <h2>Date/block estimation</h2>
     <p>The block status details are {loading ? "being loaded" : "ready"}</p>
+    {blockHeight ? <p>Current block {blockHeight}</p> : null}
     {!date ? null : <p>Date at block {targetBlock}: {date.toJSON()}</p>}
-    {blockHeight ? <p>Block on {targetDate.toJSON()}: {blockHeight}</p> : null}
+    {estimatedBlockNumber ? <p>Block on {targetDate.toJSON()}: {estimatedBlockNumber}</p> : null}
     {!blockStatus ? null : <pre>{JSON.stringify(blockStatus, null, 2)}</pre>}
     {error ? <p>Error: {error}</p> : null}
   </div>

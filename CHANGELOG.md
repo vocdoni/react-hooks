@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2
+
+- Adding `useBlockHeight`
+
 ## 0.6.1
 
 - Adding `useBlockStatus`
