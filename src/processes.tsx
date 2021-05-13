@@ -7,7 +7,7 @@ import React, {
 } from 'react'
 import { Nullable, ProcessInfo } from './types'
 import { usePool } from './pool'
-import { GatewayPool, VotingApi } from 'dvote-js'
+import { VotingApi } from 'dvote-js'
 import { useForceUpdate } from './util'
 
 interface IProcessContext {
@@ -122,7 +122,7 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
 
   const loadProcessInfo = (processId: string) => {
     const prom = poolPromise
-      .then(pool => getProcessInfo(processId, pool))
+      .then(pool => VotingApi.getProcess(processId, pool))
       .then(processInfo => {
         processesMap.current.set(processId, processInfo)
         processesLoading.current.delete(processId)
@@ -166,23 +166,4 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
       {children}
     </UseProcessContext.Provider>
   )
-}
-
-// HELPERS
-
-function getProcessInfo(
-  processId: string,
-  pool: GatewayPool
-): Promise<ProcessInfo> {
-  return Promise.all([
-    VotingApi.getProcessMetadata(processId, pool),
-    VotingApi.getProcessParameters(processId, pool)
-  ]).then(results => {
-    return {
-      metadata: results[0],
-      parameters: results[1],
-      id: processId, // pass-through to have the value for links
-      entity: results[1]?.entityAddress?.toLowerCase?.() || ''
-    }
-  })
 }

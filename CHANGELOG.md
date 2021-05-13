@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.3
+
+- Improving efficiency on cached data, saving network requests
+- Upgrading dvote-js to benefit from network improvements
+
 ## 0.6.2
 
 - Adding `useBlockHeight`

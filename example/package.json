@@ -2,13 +2,15 @@
   "name": "example",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "MIT",
+  "license": "AGPL",
   "scripts": {
     "start": "parcel index.html",
-    "build": "parcel build index.html"
+    "build": "parcel build index.html",
+    "clean": "rm -Rf .cache dist",
+    "preinstall": "npx npm-force-resolutions"
   },
   "dependencies": {
-    "dvote-js": "^1.5.2",
+    "dvote-js": "^1.5.4",
     "react-app-polyfill": "^1.0.0"
   },
   "alias": {
@@ -16,10 +18,13 @@
     "react-dom": "../node_modules/react-dom/profiling",
     "scheduler/tracing": "../node_modules/scheduler/tracing-profiling"
   },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
   "devDependencies": {
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
-    "parcel": "^1.12.3",
+    "parcel": "1.12.3",
     "typescript": "^4.1.3"
   }
 }
