@@ -10,10 +10,10 @@ const ENVIRONMENT = "dev"
 const NETWORK_ID = "goerli"
 const ENTITY_ID = "0x797B8Eb02e670bcd36AA6146c4766577E8EA9059"
 const PROCESS_IDS = [
-  "0x650f13cacb6ae088d80af74403eb656ba9473e3e296f61f165360b1f8358a2dc",
-  "0xba82184882b0e970e659290e8b86bd0ed74cbe168ea9ba0726862eaac9c7a301",
-  "0xf72d00fbcee5fdb7203ad215b8fa13575f4fb66b8d54d466cf49271f6fbba7ed",
-  "0xa7546c7119ad659af93c4980fdd9a48fdb3525853089898d287bad3c99421d3f"
+  "0x78364fdd52145ea9ba6ab6d593303627b5dea9867d1500949ac4cf8effe0b80d",
+  "0xfb7bd01987e1d8bb0ad5eb8b65e26fcbdd56787f33bc9ba98e3f9b5a21afebe2",
+  // "0x8dc72483bf19b9f778c871574fc14b294de65c1e2c5437c2b9223f43f650dad0",
+  "0xc18cd531c2f3c1d9cbada0d23eb36b424e11c4665caeada544b0b5a8b83a3fda"
 ]
 
 const App = () => {
@@ -40,12 +40,14 @@ const PoolComponent = () => {
   const { pool, poolPromise, loading, error } = usePool()
 
   useEffect(() => {
-    poolPromise
-      .then(pool => {
-        // Do something with the gateway pool instance
-        VotingApi.getResultsDigest(PROCESS_IDS[0], pool)
-          .then(console.log)
-      })
+    const operation = () => {
+      poolPromise
+        .then(gwPool => {
+          // Do something with the gateway pool instance
+          VotingApi.getResultsDigest(PROCESS_IDS[0], gwPool)
+        })
+    }
+    setTimeout(() => operation, 100)
   }, [])
 
   return <div>

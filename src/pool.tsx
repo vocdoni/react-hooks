@@ -65,12 +65,7 @@ export function UsePoolProvider({
       networkId: networkId,
       environment: environment
     })
-      .then(discoveredPool => {
-        newPool = discoveredPool
-
-        return newPool.init()
-      })
-      .then(() => {
+      .then(newPool => {
         setPool(newPool)
         setError(null)
         setLoading(false)

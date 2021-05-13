@@ -1,6 +1,5 @@
 import React, {
   ReactNode,
-  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -9,6 +8,7 @@ import React, {
 import { Nullable, ProcessInfo } from './types'
 import { usePool } from './pool'
 import { GatewayPool, VotingApi } from 'dvote-js'
+import { useForceUpdate } from './util'
 
 interface IProcessContext {
   processes: Map<string, ProcessInfo>
@@ -32,38 +32,37 @@ export const UseProcessContext = React.createContext<IProcessContext>({
 
 export function useProcess(processId: string) {
   const processContext = useContext(UseProcessContext)
-  const [processInfo, setProcessInfo] = useState<Nullable<ProcessInfo>>(null)
+  const { processes, resolveProcessInfo } = processContext
+  const [processInfo, setProcessInfo] = useState<Nullable<ProcessInfo>>(() =>
+    processes.get(processId)
+  )
   const [error, setError] = useState<Nullable<string>>(null)
-  const [loading, setLoading] = useState(false) // to force rerender after the referenced process infos change
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let ignore = false
 
-    const update = () => {
-      if (!processId) return
+    if (!processId) return () => {}
 
-      setLoading(true)
+    setLoading(true)
 
-      processContext
-        .resolveProcessInfo(processId)
-        .then(newInfo => {
-          if (ignore) return
-          setLoading(false)
-          setProcessInfo(newInfo)
-          setError(null)
-        })
-        .catch(err => {
-          if (ignore) return
-          setLoading(false)
-          setError(err?.message || err?.toString())
-        })
-    }
-    update()
+    resolveProcessInfo(processId)
+      .then(newInfo => {
+        if (ignore) return
+        setLoading(false)
+        setProcessInfo(newInfo)
+        setError(null)
+      })
+      .catch(err => {
+        if (ignore) return
+        setLoading(false)
+        setError(err?.message || err?.toString?.())
+      })
 
     return () => {
       ignore = true
     }
-  }, [processId, processContext])
+  }, [processId])
 
   if (processContext === null) {
     throw new Error(
@@ -79,7 +78,8 @@ export function useProcess(processId: string) {
 export function useProcesses(processIds: string[]) {
   const processContext = useContext(UseProcessContext)
   const [error, setError] = useState<Nullable<string>>(null)
-  const [loading, setLoading] = useState(false) // to force rerender after the referenced process infos change
+  const [loading, setLoading] = useState(true)
+  const { processes, resolveProcessInfo } = processContext
 
   useEffect(() => {
     if (!processIds || !processIds.length) return () => {}
@@ -87,10 +87,8 @@ export function useProcesses(processIds: string[]) {
 
     setLoading(true)
 
-    // Signal a refresh on the current token processIds
-    Promise.all(
-      processIds.map(address => processContext.resolveProcessInfo(address))
-    )
+    // Signal a refresh on the token processIds
+    Promise.all(processIds.map(address => resolveProcessInfo(address)))
       .then(() => {
         if (ignore) return
         setLoading(false)
@@ -99,12 +97,12 @@ export function useProcesses(processIds: string[]) {
       .catch(err => {
         if (ignore) return
         setLoading(false)
-        setError(err?.message || err?.toString())
+        setError(err?.message || err?.toString?.())
       })
     return () => {
       ignore = true
     }
-  }, [processIds, processContext])
+  }, [processIds])
 
   if (processContext === null) {
     throw new Error(
@@ -112,47 +110,55 @@ export function useProcesses(processIds: string[]) {
         'please declare it at a higher level.'
     )
   }
-  return { processes: processContext.processes, error, loading }
+  return { processes, error, loading }
 }
 
 export function UseProcessProvider({ children }: { children: ReactNode }) {
-  // TODO: Use swr instead of the local cache
-
-  const processes = useRef(new Map<string, ProcessInfo>())
+  const processesMap = useRef(new Map<string, ProcessInfo>())
+  const processesLoading = useRef(new Map<string, Promise<ProcessInfo>>())
   const { poolPromise } = usePool()
+  // Force an update when a processesMap entry has changed
+  const forceUpdate = useForceUpdate()
 
-  const loadProcessInfo: (
-    processId: string
-  ) => Promise<ProcessInfo> = useCallback(
-    (processId: string) => {
-      return poolPromise
-        .then(pool => getProcessInfo(processId, pool))
-        .then(processInfo => {
-          processes.current.set(processId, processInfo)
-          return processInfo
-        })
-    },
-    [poolPromise]
-  )
+  const loadProcessInfo = (processId: string) => {
+    const prom = poolPromise
+      .then(pool => getProcessInfo(processId, pool))
+      .then(processInfo => {
+        processesMap.current.set(processId, processInfo)
+        processesLoading.current.delete(processId)
+        forceUpdate()
+        return processInfo
+      })
+      .catch(err => {
+        processesLoading.current.delete(processId)
+        throw err
+      })
 
-  const resolveProcessInfo: (
+    // let consumers await this promise multiple times
+    processesLoading.current.set(processId, prom)
+
+    return prom
+  }
+
+  // Lazy load data, only when needed
+  const resolveProcessInfo: (processId: string) => Promise<ProcessInfo> = (
     processId: string
-  ) => Promise<Nullable<ProcessInfo>> = useCallback(
-    (processId: string) => {
-      if (!processId) return Promise.resolve(null)
-      else if (processes.current.has(processId)) {
-        // cached
-        return Promise.resolve(processes.current.get(processId) || null)
-      }
-      return loadProcessInfo(processId)
-    },
-    [loadProcessInfo]
-  )
+  ) => {
+    if (!processId) return Promise.resolve(null)
+    else if (processesLoading.current.has(processId)) {
+      // still loading
+      return processesLoading.current.get(processId)
+    } else if (processesMap.current.has(processId)) {
+      // cached
+      return Promise.resolve(processesMap.current.get(processId) || null)
+    }
+    return loadProcessInfo(processId)
+  }
 
   return (
     <UseProcessContext.Provider
       value={{
-        processes: processes.current,
+        processes: processesMap.current,
         resolveProcessInfo,
         refreshProcessInfo: loadProcessInfo
       }}
