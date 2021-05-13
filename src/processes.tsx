@@ -82,7 +82,7 @@ export function useProcesses(processIds: string[]) {
   const { processes, resolveProcessInfo } = processContext
 
   useEffect(() => {
-    if (!processIds || !processIds.length) return () => {}
+    if (!processIds) return () => {}
     let ignore = false
 
     setLoading(true)

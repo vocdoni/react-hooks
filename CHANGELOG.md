@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.5
+
+- Fixing an issue that would show proposals as loading with empty arrays
+
 ## 0.6.4
 
 - Using `IProcessInfo` from dvote-js instead of the own `ProcessInfo`
