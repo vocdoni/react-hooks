@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.4
+
+- Using `IProcessInfo` from dvote-js instead of the own `ProcessInfo`
+
 ## 0.6.3
 
 - Improving efficiency on cached data, saving network requests

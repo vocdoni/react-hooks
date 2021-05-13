@@ -79,7 +79,7 @@ const ProcessComponent = () => {
 const ProcessesComponent = () => {
   const { processes, loading, error } = useProcesses(PROCESS_IDS)
 
-  // processes is a Map<string, ProcessInfo>
+  // processes is a Map<string, IProcessInfo>
 
   return <div>
     <h2>Process (list)</h2>

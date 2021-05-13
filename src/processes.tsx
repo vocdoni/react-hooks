@@ -5,19 +5,19 @@ import React, {
   useRef,
   useState
 } from 'react'
-import { Nullable, ProcessInfo } from './types'
+import { Nullable } from './types'
 import { usePool } from './pool'
-import { VotingApi } from 'dvote-js'
+import { IProcessInfo, VotingApi } from 'dvote-js'
 import { useForceUpdate } from './util'
 
 interface IProcessContext {
-  processes: Map<string, ProcessInfo>
-  resolveProcessInfo: (processId: string) => Promise<Nullable<ProcessInfo>>
-  refreshProcessInfo: (processId: string) => Promise<ProcessInfo>
+  processes: Map<string, IProcessInfo>
+  resolveProcessInfo: (processId: string) => Promise<Nullable<IProcessInfo>>
+  refreshProcessInfo: (processId: string) => Promise<IProcessInfo>
 }
 
 export const UseProcessContext = React.createContext<IProcessContext>({
-  processes: new Map<string, ProcessInfo>(),
+  processes: new Map<string, IProcessInfo>(),
   resolveProcessInfo: () => {
     throw new Error(
       'Please, define your custom logic alongside <UseProcessContext.Provider> or place UseProcessProvider at the root of your app'
@@ -33,7 +33,7 @@ export const UseProcessContext = React.createContext<IProcessContext>({
 export function useProcess(processId: string) {
   const processContext = useContext(UseProcessContext)
   const { processes, resolveProcessInfo } = processContext
-  const [processInfo, setProcessInfo] = useState<Nullable<ProcessInfo>>(() =>
+  const [processInfo, setProcessInfo] = useState<Nullable<IProcessInfo>>(() =>
     processes.get(processId)
   )
   const [error, setError] = useState<Nullable<string>>(null)
@@ -114,8 +114,8 @@ export function useProcesses(processIds: string[]) {
 }
 
 export function UseProcessProvider({ children }: { children: ReactNode }) {
-  const processesMap = useRef(new Map<string, ProcessInfo>())
-  const processesLoading = useRef(new Map<string, Promise<ProcessInfo>>())
+  const processesMap = useRef(new Map<string, IProcessInfo>())
+  const processesLoading = useRef(new Map<string, Promise<IProcessInfo>>())
   const { poolPromise } = usePool()
   // Force an update when a processesMap entry has changed
   const forceUpdate = useForceUpdate()
@@ -141,7 +141,7 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
   }
 
   // Lazy load data, only when needed
-  const resolveProcessInfo: (processId: string) => Promise<ProcessInfo> = (
+  const resolveProcessInfo: (processId: string) => Promise<IProcessInfo> = (
     processId: string
   ) => {
     if (!processId) return Promise.resolve(null)
