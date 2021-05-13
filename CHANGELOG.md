@@ -1,5 +1,6 @@
 # Changelog
 
+## 0.6.6
 ## 0.6.5
 
 - Fixing an issue that would show proposals as loading with empty arrays
