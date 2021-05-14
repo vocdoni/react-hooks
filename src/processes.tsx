@@ -105,7 +105,7 @@ export function useProcesses(processIds: string[]) {
     return () => {
       ignore = true
     }
-  }, [processIds])
+  }, [processIds.join('')])
 
   if (processContext === null) {
     throw new Error(

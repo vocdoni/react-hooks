@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.7
+
+- Performance improvement on `useProcesses`
+
 ## 0.6.6
 ## 0.6.5
 
