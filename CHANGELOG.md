@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.0
+
+- Improving the gateway pool discovery flow
+- Allowing to `retry` the connection on error
+
 ## 0.6.7
 
 - Performance improvement on `useProcesses`

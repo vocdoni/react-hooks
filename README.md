@@ -52,7 +52,7 @@ To get a Gateway Pool:
 
 ```tsx
 const PoolComponent = () => {
-  const { pool, poolPromise, loading, error } = usePool()
+  const { pool, poolPromise, loading, error, retry, refresh } = usePool()
 
   useEffect(() => {
     poolPromise
@@ -68,6 +68,8 @@ const PoolComponent = () => {
     <p>The Gateway Pool is {loading ? "being loaded" : "ready"}</p>
     {pool ? <p>Ready</p> : null}
     {error ? <p>Error: {error}</p> : null}
+    {error && pool ? <p><button onClick={refresh}>Refresh</button></p> : null}
+    {error && !pool ? <button onClick={retry}>Retry</button> : null}
   </div>
 }
 ```

@@ -9,6 +9,8 @@ import { BlockStatus, VotingApi } from 'dvote-js'
 import { usePool } from './pool'
 import { Nullable } from './types'
 
+const VOCHAIN_BLOCK_TIME = 12
+
 // Context
 export type BlockStatusContext = {
   blockStatus: BlockStatus
@@ -16,7 +18,7 @@ export type BlockStatusContext = {
   error: string
 }
 const DEFAULT_VALUE: BlockStatusContext = {
-  blockStatus: { blockNumber: 0, blockTimes: [], blockTimestamp: 0 },
+  blockStatus: { blockNumber: -1, blockTimes: [], blockTimestamp: -1 },
   loading: false,
   error: ''
 }
@@ -36,7 +38,7 @@ export function useDateAtBlock(vochainBlock: number) {
   }
   const { blockStatus, loading, error } = poolContext
 
-  if (!blockStatus) {
+  if (!blockStatus || blockStatus.blockNumber < 0) {
     return { date: null, loading, error }
   }
 
@@ -55,7 +57,7 @@ export function useBlockAtDate(date: Date) {
   }
   const { blockStatus, loading, error } = poolContext
 
-  if (!blockStatus) {
+  if (!blockStatus || blockStatus.blockNumber < 0) {
     return { blockHeight: null, loading, error }
   }
 
@@ -83,8 +85,12 @@ export function useBlockHeight() {
         'please declare it at a higher level.'
     )
   }
-  const blockHeight = poolContext.blockStatus?.blockNumber || 0
-  return { blockHeight, error: poolContext.error, loading: poolContext.loading }
+  const { blockStatus, loading, error } = poolContext
+  if (!blockStatus || blockStatus.blockNumber < 0) {
+    return { blockHeight: null, loading, error }
+  }
+
+  return { blockHeight: blockStatus.blockNumber, error, loading }
 }
 
 // Backend
@@ -94,13 +100,20 @@ export function UseBlockStatusProvider({ children }: { children: ReactNode }) {
   const [blockStatus, setBlockStatus] = useState<Nullable<BlockStatus>>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<Nullable<string>>(null)
+  let disposed = false
 
   // Auto update
   useEffect(() => {
-    const interval = setInterval(() => fetchBlockStatus(), 1000 * 13)
+    const interval = setInterval(
+      () => fetchBlockStatus(),
+      1000 * VOCHAIN_BLOCK_TIME
+    )
     fetchBlockStatus()
 
-    return () => clearInterval(interval)
+    return () => {
+      disposed = true
+      clearInterval(interval)
+    }
   }, [])
 
   // Loader
@@ -112,11 +125,15 @@ export function UseBlockStatusProvider({ children }: { children: ReactNode }) {
     poolPromise
       .then(pool => VotingApi.getBlockStatus(pool))
       .then(blockStatus => {
+        if (disposed) return
+
         setLoading(false)
         setError('')
         setBlockStatus(blockStatus)
       })
       .catch(err => {
+        if (disposed) return
+
         setLoading(false)
         setError(err?.message || err?.toString?.())
       })

@@ -7,13 +7,21 @@ import React, {
 } from 'react'
 import { EthNetworkID, GatewayPool, VocdoniEnvironment } from 'dvote-js'
 import { Nullable } from './types'
+import { Deferred } from './util'
 
 interface IPoolContext {
+  /** The current gateway pool client (use poolPromise instead) */
   pool: Nullable<GatewayPool>
+  /** A promise that resolves with the latest functional pool client */
   poolPromise: Promise<GatewayPool>
+  /** Whether the discovery is in progress */
   loading: boolean
+  /** Whether the discovery failed */
   error: Nullable<string>
-  refresh: () => void
+  /** Re-run the discovery process on an already working connection */
+  refresh: () => Promise<GatewayPool>
+  /** If the initial connection failed, starts the discovery from scratch */
+  retry: () => Promise<GatewayPool>
 }
 
 export const UsePoolContext = createContext<IPoolContext>({
@@ -21,7 +29,8 @@ export const UsePoolContext = createContext<IPoolContext>({
   poolPromise: null as any,
   loading: false,
   error: null,
-  refresh: () => {}
+  refresh: () => Promise.reject(new Error('Not ready')),
+  retry: () => Promise.reject(new Error('Not ready'))
 })
 
 export function usePool() {
@@ -46,9 +55,7 @@ export function UsePoolProvider({
   environment: VocdoniEnvironment
   children: ReactNode
 }) {
-  // Promise holder for requests arriving before the pool is available
-  let resolvePoolPromise: (pool: GatewayPool) => any
-  let poolPromise: Promise<GatewayPool>
+  const [deferred, setDeferred] = useState(() => new Deferred<GatewayPool>())
 
   const [pool, setPool] = useState<Nullable<GatewayPool>>(null)
   const [loading, setLoading] = useState<boolean>(false)
@@ -56,70 +63,76 @@ export function UsePoolProvider({
 
   // Initial load
   useEffect(() => {
-    let newPool: GatewayPool
+    init()
 
+    // Cleanup
+    return () => {
+      pool?.disconnect?.()
+    }
+  }, [environment, bootnodeUri, networkId])
+
+  // Do the initial discovery
+  const init = () => {
     setLoading(true)
 
-    GatewayPool.discover({
+    return GatewayPool.discover({
       bootnodesContentUri: bootnodeUri,
       networkId: networkId,
       environment: environment
     })
-      .then(newPool => {
-        setPool(newPool)
+      .then(pool => {
+        // Direct values
+        setPool(pool)
         setError(null)
         setLoading(false)
 
-        // Notify early awaiters
-        resolvePoolPromise?.(newPool)
-        return newPool
-      })
-      .catch(err => {
-        setLoading(false)
-        setError((err && err.message) || err?.toString())
-        throw err
-      })
-
-    // Cleanup
-    return () => {
-      newPool?.disconnect?.()
-    }
-  }, [environment, bootnodeUri, networkId])
-
-  // Manual refresh
-  const refresh = () => {
-    if (!pool) return
-
-    setLoading(true)
-    pool
-      .refresh()
-      .then(() => {
-        setLoading(false)
-
-        // Notify early awaiters
-        resolvePoolPromise?.(pool)
+        // Notify promise awaiters
+        if (!deferred.settled) {
+          deferred.resolve(pool)
+        } else {
+          const newDeferred = new Deferred<GatewayPool>()
+          newDeferred.resolve(pool)
+          setDeferred(newDeferred)
+        }
         return pool
       })
       .catch(err => {
         setLoading(false)
+        setError((err && err.message) || err?.toString())
 
+        // Promise waiters are not notified of errors, so the initial
+        // `.then` keeps working without further "retry" elsewhere
+        throw err
+      })
+  }
+
+  // Refresh an already working pool
+  const refresh = () => {
+    setLoading(true)
+
+    return deferred.promise
+      .then(pool => pool.refresh())
+      .then(() => {
+        setLoading(false)
+        return pool
+      })
+      .catch(err => {
+        setLoading(false)
         setError((err && err.message) || err?.toString())
         throw err
       })
   }
 
-  // Ensure that by default, resolvePool always has a promise
-  if (pool == null) {
-    poolPromise = new Promise<GatewayPool>(resolve => {
-      resolvePoolPromise = resolve
-    })
-  } else {
-    poolPromise = Promise.resolve(pool)
-  }
-
   return (
     <UsePoolContext.Provider
-      value={{ pool, poolPromise, loading, error, refresh }}
+      value={{
+        pool,
+        poolPromise: deferred.promise,
+        loading,
+        error,
+        refresh,
+        retry: init
+      }}
     >
       {children}
     </UsePoolContext.Provider>
