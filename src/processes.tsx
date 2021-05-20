@@ -32,7 +32,7 @@ export const UseProcessContext = React.createContext<IProcessContext>({
 
 export function useProcess(processId: string) {
   const processContext = useContext(UseProcessContext)
-  const { processes, resolveProcessInfo } = processContext
+  const { processes, resolveProcessInfo, refreshProcessInfo } = processContext
   const [processInfo, setProcessInfo] = useState<Nullable<IProcessInfo>>(() =>
     processes.get(processId)
   )
@@ -71,7 +71,7 @@ export function useProcess(processId: string) {
     )
   }
 
-  return { process: processInfo, error, loading }
+  return { process: processInfo, error, loading, refresh: refreshProcessInfo }
 }
 
 /** Returns an arran containing the available information about the given processIds */

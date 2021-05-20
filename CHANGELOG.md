@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1
+
+- Allowing to refresh the process info of a particular process
+
 ## 0.7.0
 
 - Improving the gateway pool discovery flow
