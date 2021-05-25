@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0
+
+- BREAKING: `useProcess` and `useProcesses` now returns an object with a slightly different signature on `parameters`
+  - See https://github.com/vocdoni/dvote-js/blob/fdf0cf99c623091eec0e09e21520c05c92fb37c0/src/api/voting.ts#L70-L98
+
 ## 0.7.2
 
 - Adds discovery parameters to pool hook
