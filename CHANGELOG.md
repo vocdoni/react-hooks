@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.2
+
+- Adds discovery parameters to pool hook
+
 ## 0.7.1
 
 - Allowing to refresh the process info of a particular process

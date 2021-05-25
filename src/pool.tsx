@@ -48,12 +48,16 @@ export function UsePoolProvider({
   bootnodeUri,
   networkId,
   environment,
-  children
+  children,
+  discoveryTimeout = 2000,
+  minNumGateways = 2
 }: {
   bootnodeUri: string
   networkId: EthNetworkID
   environment: VocdoniEnvironment
   children: ReactNode
+  discoveryTimeout?: number
+  minNumGateways?: number
 }) {
   const [deferred, setDeferred] = useState(() => new Deferred<GatewayPool>())
 
@@ -78,6 +82,8 @@ export function UsePoolProvider({
     return GatewayPool.discover({
       bootnodesContentUri: bootnodeUri,
       networkId: networkId,
+      timeout: discoveryTimeout,
+      numberOfGateways: minNumGateways,
       environment: environment
     })
       .then(pool => {
