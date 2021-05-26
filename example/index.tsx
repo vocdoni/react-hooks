@@ -45,14 +45,14 @@ const PoolComponent = () => {
       .then(gwPool => {
         // Do something with the gateway pool instance
         return VotingApi.getResultsDigest(PROCESS_IDS[0], gwPool)
-          .then(results => console.log(results))
+          .then(results => console.log("RESULTS", results))
       })
       .catch(err => console.error("RESULTS ERROR", err))
   }, [])
 
   return <div>
     <h2>Gateway Pool</h2>
-    <p>The Gateway Pool is {loading ? "loading" : "not loading"}</p>
+    <p>Status: ({loading ? "loading" : "idle"})</p>
     {pool ? <p>Ready</p> : null}
     {error ? <p>Error: {error}</p> : null}
     {error && pool ? <p><button onClick={refresh}>Refresh</button></p> : null}
@@ -65,7 +65,7 @@ const ProcessComponent = () => {
 
   return <div>
     <h2>Process (single)</h2>
-    <p>The Process details are {loading ? "loading" : "not loading"}</p>
+    <p>Status: ({loading ? "loading" : "idle"})</p>
     {
       !process ? null : <>
         <pre>Process ID: {process.id}</pre>
@@ -85,7 +85,7 @@ const ProcessesComponent = () => {
 
   return <div>
     <h2>Process (list)</h2>
-    <p>The Process details are {loading ? "loading" : "not loading"}</p>
+    <p>Status: ({loading ? "loading" : "idle"})</p>
     <ul>
       {
         processes.map(processSummary => {
@@ -104,7 +104,7 @@ const EntityComponent = () => {
 
   return <div>
     <h2>Entity</h2>
-    <p>The entity details are {loading ? "loading" : "not loading"}</p>
+    <p>Status: ({loading ? "loading" : "idle"})</p>
     {
       !metadata ? null : <>
         <pre>Entity ID: {ENTITY_ID}</pre>
@@ -120,7 +120,7 @@ const EntityProcessesComponent = () => {
 
   return <div>
     <h2>Entity processes</h2>
-    <p>The list of processes is {loading ? "loading" : "not loading"}</p>
+    <p>Status: ({loading ? "loading" : "idle"})</p>
     {
       !processIds ? null : <>
         <pre>Entity ID: {ENTITY_ID}</pre>
@@ -143,7 +143,7 @@ const DateBlockComponent = () => {
 
   return <div>
     <h2>Date/block estimation</h2>
-    <p>The block status details are {loading ? "loading" : "not loading"}</p>
+    <p>Status: ({loading ? "loading" : "idle"})</p>
     {blockHeight ? <p>Current block {blockHeight}</p> : null}
     {!date ? null : <p>Date at block {targetBlock}: {date.toJSON()}</p>}
     {estimatedBlockNumber ? <p>Block on {targetDate.toJSON()}: {estimatedBlockNumber}</p> : null}
