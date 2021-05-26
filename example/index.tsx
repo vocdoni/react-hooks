@@ -2,7 +2,7 @@ import 'react-app-polyfill/ie11'
 import * as React from 'react'
 import { useEffect } from 'react'
 import * as ReactDOM from 'react-dom'
-import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses, UseEntityProvider, useEntity, UseBlockStatusProvider, useDateAtBlock, useBlockAtDate, useBlockStatus, useBlockHeight } from '../.'
+import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses, UseEntityProvider, useEntity, UseBlockStatusProvider, useDateAtBlock, useBlockAtDate, useBlockStatus, useBlockHeight, useEntityProcessIdList } from '../src/index'
 import { VotingApi } from 'dvote-js'
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
@@ -27,6 +27,7 @@ const App = () => {
               <ProcessComponent />
               <ProcessesComponent />
               <EntityComponent />
+              <EntityProcessesComponent />
               <DateBlockComponent />
             </div>
           </UseBlockStatusProvider>
@@ -43,7 +44,7 @@ const PoolComponent = () => {
     poolPromise
       .then(gwPool => {
         // Do something with the gateway pool instance
-        VotingApi.getResultsDigest(PROCESS_IDS[0], gwPool)
+        return VotingApi.getResultsDigest(PROCESS_IDS[0], gwPool)
           .then(results => console.log(results))
       })
       .catch(err => console.error("RESULTS ERROR", err))
@@ -51,7 +52,7 @@ const PoolComponent = () => {
 
   return <div>
     <h2>Gateway Pool</h2>
-    <p>The Gateway Pool is {loading ? "being loaded" : "ready"}</p>
+    <p>The Gateway Pool is {loading ? "loading" : "not loading"}</p>
     {pool ? <p>Ready</p> : null}
     {error ? <p>Error: {error}</p> : null}
     {error && pool ? <p><button onClick={refresh}>Refresh</button></p> : null}
@@ -64,13 +65,13 @@ const ProcessComponent = () => {
 
   return <div>
     <h2>Process (single)</h2>
-    <p>The Process details are {loading ? "being loaded" : "ready"}</p>
+    <p>The Process details are {loading ? "loading" : "not loading"}</p>
     {
       !process ? null : <>
         <pre>Process ID: {process.id}</pre>
-        <pre>Entity Address: {process.entity}</pre>
+        <pre>Entity Address: {process.state?.entityId}</pre>
         <pre>{JSON.stringify(process.metadata, null, 2)}</pre>
-        <pre>{JSON.stringify(process.parameters, null, 2)}</pre>
+        <pre>{JSON.stringify(process.state, null, 2)}</pre>
       </>
     }
     {error ? <p>Error: {error}</p> : null}
@@ -84,13 +85,13 @@ const ProcessesComponent = () => {
 
   return <div>
     <h2>Process (list)</h2>
-    <p>The Process details are {loading ? "being loaded" : "ready"}</p>
+    <p>The Process details are {loading ? "loading" : "not loading"}</p>
     <ul>
       {
-        PROCESS_IDS.map(id => {
-          const processInfo = processes.get(id)
-          if (!processInfo) return <li key={id}>Process {id.substr(0, 6)}... is not ready</li>
-          return <li key={id}>{processInfo.metadata.title.default}</li>
+        processes.map(processSummary => {
+          const { id } = processSummary
+          if (!processSummary) return <li key={id}>Process {id.substr(0, 6)}... is not ready</li>
+          return <li key={id}>{processSummary.metadata?.title?.default}</li>
         })
       }
     </ul>
@@ -103,11 +104,27 @@ const EntityComponent = () => {
 
   return <div>
     <h2>Entity</h2>
-    <p>The entity details are {loading ? "being loaded" : "ready"}</p>
+    <p>The entity details are {loading ? "loading" : "not loading"}</p>
     {
       !metadata ? null : <>
         <pre>Entity ID: {ENTITY_ID}</pre>
         <pre>{JSON.stringify(metadata, null, 2)}</pre>
+      </>
+    }
+    {error ? <p>Error: {error}</p> : null}
+  </div>
+}
+
+const EntityProcessesComponent = () => {
+  const { processIds, loading, error } = useEntityProcessIdList(ENTITY_ID, { status: "READY", withResults: false })
+
+  return <div>
+    <h2>Entity processes</h2>
+    <p>The list of processes is {loading ? "loading" : "not loading"}</p>
+    {
+      !processIds ? null : <>
+        <pre>Entity ID: {ENTITY_ID}</pre>
+        <p><code>{processIds.join(", ")}</code></p>
       </>
     }
     {error ? <p>Error: {error}</p> : null}
@@ -126,7 +143,7 @@ const DateBlockComponent = () => {
 
   return <div>
     <h2>Date/block estimation</h2>
-    <p>The block status details are {loading ? "being loaded" : "ready"}</p>
+    <p>The block status details are {loading ? "loading" : "not loading"}</p>
     {blockHeight ? <p>Current block {blockHeight}</p> : null}
     {!date ? null : <p>Date at block {targetBlock}: {date.toJSON()}</p>}
     {estimatedBlockNumber ? <p>Block on {targetDate.toJSON()}: {estimatedBlockNumber}</p> : null}

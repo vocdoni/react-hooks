@@ -8,12 +8,12 @@ import React, {
 import { Nullable } from './types'
 import { usePool } from './pool'
 import {
-  IProcessDetails,
   IProcessSummary,
   IProcessState,
   VotingApi,
   ProcessMetadata,
-  FileApi
+  FileApi,
+  IProcessVochainStatus
 } from 'dvote-js'
 import { useForceUpdate } from './util'
 
@@ -111,7 +111,7 @@ export function useProcess(processId: string) {
         if (ignore) throw null
         setProcessState(newState)
 
-        return resolveProcessMetadata(newState.metadata)
+        return resolveProcessMetadata({ processId, ipfsUri: newState.metadata })
       })
       .then(newMetadata => {
         if (ignore) return
@@ -376,7 +376,7 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
 /** Resolves the list of processIds for the given entity, applying the given filters */
 export function useEntityProcessIdList(
   entityId: string,
-  filters: { status?: IProcessStatus; withResults?: boolean } = {}
+  filters: { status?: IProcessVochainStatus; withResults?: boolean } = {}
 ) {
   const { poolPromise } = usePool()
   const [processIds, setProcessIds] = useState<string[]>([])
@@ -393,8 +393,7 @@ export function useEntityProcessIdList(
     setLoading(true)
 
     // Load
-    poolPromise
-      .then(pool => VotingApi.getProcessList({ entityId, ...filters }, pool))
+    getProcessIdList(entityId)
       .then(processIds => {
         if (ignore) return
         setProcessIds(processIds)
@@ -412,7 +411,24 @@ export function useEntityProcessIdList(
     }
   }, [entityId])
 
-  const getProcessIdList = () => {}
+  const getProcessIdList = async (entityId: string) => {
+    let result: string[] = []
+    let from = 0
+
+    const pool = await poolPromise
+
+    while (true) {
+      const processList = await VotingApi.getProcessList(
+        { entityId, from, ...filters },
+        pool
+      )
+      if (processList.length == 0) return result
+
+      result = result.concat(processList.map(id => '0x' + id))
+      from += processList.length
+    }
+    return result
+  }
 
   return { processIds, error, loading }
 }
