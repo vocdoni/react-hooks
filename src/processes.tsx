@@ -370,3 +370,49 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
     </UseProcessContext.Provider>
   )
 }
+
+// Entity related
+
+/** Resolves the list of processIds for the given entity, applying the given filters */
+export function useEntityProcessIdList(
+  entityId: string,
+  filters: { status?: IProcessStatus; withResults?: boolean } = {}
+) {
+  const { poolPromise } = usePool()
+  const [processIds, setProcessIds] = useState<string[]>([])
+  const [error, setError] = useState<Nullable<string>>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!entityId) {
+      setLoading(false)
+      return () => {}
+    }
+    let ignore = false
+
+    setLoading(true)
+
+    // Load
+    poolPromise
+      .then(pool => VotingApi.getProcessList({ entityId, ...filters }, pool))
+      .then(processIds => {
+        if (ignore) return
+        setProcessIds(processIds)
+        setLoading(false)
+        setError(null)
+      })
+      .catch(err => {
+        if (ignore) return
+        setLoading(false)
+        setError(err?.message || err?.toString?.())
+      })
+
+    return () => {
+      ignore = true
+    }
+  }, [entityId])
+
+  const getProcessIdList = () => {}
+
+  return { processIds, error, loading }
+}
