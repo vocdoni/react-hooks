@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.0
+
+- (BREAKING) Splitting the process hooks to save network requests
+  - `useProcess` now returns the full state for one process
+  - `useProcesses` now returns a summary for each process
+  - Metadata is now detached and cached separately
+
 ## 0.8.1
 
 - Recompiling with a clean dvote-js version, relaxing the gateway client pool checks
