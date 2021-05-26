@@ -1,11 +1,11 @@
 # Changelog
 
 ## 0.9.0
-
-- (BREAKING) Splitting the process hooks to save network requests
+- BREAKING: Splitting the process hooks to save network requests
   - `useProcess` now returns the full state for one process
   - `useProcesses` now returns a summary for each process
   - Metadata is now detached and cached separately
+- Adding `useEntityProcessIdList`
 
 ## 0.8.1
 
