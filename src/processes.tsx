@@ -7,35 +7,95 @@ import React, {
 } from 'react'
 import { Nullable } from './types'
 import { usePool } from './pool'
-import { IProcessInfo, VotingApi } from 'dvote-js'
+import {
+  IProcessDetails,
+  IProcessSummary,
+  IProcessState,
+  VotingApi,
+  ProcessMetadata,
+  FileApi
+} from 'dvote-js'
 import { useForceUpdate } from './util'
 
 interface IProcessContext {
-  processes: Map<string, IProcessInfo>
-  resolveProcessInfo: (processId: string) => Promise<Nullable<IProcessInfo>>
-  refreshProcessInfo: (processId: string) => Promise<IProcessInfo>
+  processesSummary: Map<string, IProcessSummary>
+  processesState: Map<string, IProcessState>
+  processesMetadata: Map<string, ProcessMetadata>
+  resolveProcessState: (processId: string) => Promise<Nullable<IProcessState>>
+  refreshProcessState: (processId: string) => Promise<IProcessState>
+  resolveProcessSummary: (
+    processId: string
+  ) => Promise<Nullable<IProcessSummary>>
+  refreshProcessSummary: (processId: string) => Promise<IProcessSummary>
+  resolveProcessMetadata: ({
+    processId,
+    ipfsUri
+  }: {
+    processId: string
+    ipfsUri?: string
+  }) => Promise<Nullable<ProcessMetadata>>
+  refreshProcessMetadata: ({
+    processId,
+    ipfsUri
+  }: {
+    processId: string
+    ipfsUri?: string
+  }) => Promise<ProcessMetadata>
 }
 
 export const UseProcessContext = React.createContext<IProcessContext>({
-  processes: new Map<string, IProcessInfo>(),
-  resolveProcessInfo: () => {
+  processesSummary: new Map<string, IProcessSummary>(),
+  processesState: new Map<string, IProcessState>(),
+  processesMetadata: new Map<string, ProcessMetadata>(),
+
+  resolveProcessState: () => {
     throw new Error(
       'Please, define your custom logic alongside <UseProcessContext.Provider> or place UseProcessProvider at the root of your app'
     )
   },
-  refreshProcessInfo: () => {
+  refreshProcessState: () => {
+    throw new Error(
+      'Please, define your custom logic alongside <UseProcessContext.Provider> or place UseProcessProvider at the root of your app'
+    )
+  },
+  resolveProcessSummary: () => {
+    throw new Error(
+      'Please, define your custom logic alongside <UseProcessContext.Provider> or place UseProcessProvider at the root of your app'
+    )
+  },
+  refreshProcessSummary: () => {
+    throw new Error(
+      'Please, define your custom logic alongside <UseProcessContext.Provider> or place UseProcessProvider at the root of your app'
+    )
+  },
+  resolveProcessMetadata: () => {
+    throw new Error(
+      'Please, define your custom logic alongside <UseProcessContext.Provider> or place UseProcessProvider at the root of your app'
+    )
+  },
+  refreshProcessMetadata: () => {
     throw new Error(
       'Please, define your custom logic alongside <UseProcessContext.Provider> or place UseProcessProvider at the root of your app'
     )
   }
 })
 
+/** Resolves the full details of the given process */
 export function useProcess(processId: string) {
   const processContext = useContext(UseProcessContext)
-  const { processes, resolveProcessInfo, refreshProcessInfo } = processContext
-  const [processInfo, setProcessInfo] = useState<Nullable<IProcessInfo>>(() =>
-    processes.get(processId)
+  const {
+    processesState,
+    processesMetadata,
+    resolveProcessState,
+    resolveProcessMetadata,
+    refreshProcessState
+  } = processContext
+  const [processState, setProcessState] = useState<Nullable<IProcessState>>(
+    () => processesState.get(processId)
   )
+  const [processMetadata, setProcessMetadata] = useState<
+    Nullable<ProcessMetadata>
+  >(() => processesMetadata.get(processId))
   const [error, setError] = useState<Nullable<string>>(null)
   const [loading, setLoading] = useState(true)
 
@@ -46,11 +106,17 @@ export function useProcess(processId: string) {
 
     setLoading(true)
 
-    resolveProcessInfo(processId)
-      .then(newInfo => {
+    resolveProcessState(processId)
+      .then(newState => {
+        if (ignore) throw null
+        setProcessState(newState)
+
+        return resolveProcessMetadata(newState.metadata)
+      })
+      .then(newMetadata => {
         if (ignore) return
+        setProcessMetadata(newMetadata)
         setLoading(false)
-        setProcessInfo(newInfo)
         setError(null)
       })
       .catch(err => {
@@ -71,15 +137,26 @@ export function useProcess(processId: string) {
     )
   }
 
-  return { process: processInfo, error, loading, refresh: refreshProcessInfo }
+  const process = {
+    id: processId,
+    state: processState,
+    metadata: processMetadata
+  }
+
+  return { process, error, loading, refresh: refreshProcessState }
 }
 
-/** Returns an arran containing the available information about the given processIds */
+/** Resolves the summary of the given processIds array */
 export function useProcesses(processIds: string[]) {
   const processContext = useContext(UseProcessContext)
   const [error, setError] = useState<Nullable<string>>(null)
   const [loading, setLoading] = useState(true)
-  const { processes, resolveProcessInfo } = processContext
+  const {
+    processesSummary,
+    processesMetadata,
+    resolveProcessSummary,
+    resolveProcessMetadata
+  } = processContext
 
   useEffect(() => {
     if (!processIds || !processIds.length) {
@@ -90,8 +167,14 @@ export function useProcesses(processIds: string[]) {
 
     setLoading(true)
 
-    // Signal a refresh on the token processIds
-    Promise.all(processIds.map(address => resolveProcessInfo(address)))
+    // Load
+    Promise.all(
+      processIds.map(processId => {
+        return resolveProcessSummary(processId).then(summary =>
+          resolveProcessMetadata({ processId, ipfsUri: summary.metadata })
+        )
+      })
+    )
       .then(() => {
         if (ignore) return
         setLoading(false)
@@ -102,6 +185,7 @@ export function useProcesses(processIds: string[]) {
         setLoading(false)
         setError(err?.message || err?.toString?.())
       })
+
     return () => {
       ignore = true
     }
@@ -113,57 +197,173 @@ export function useProcesses(processIds: string[]) {
         'please declare it at a higher level.'
     )
   }
+
+  const processes = processIds.map(processId => ({
+    id: processId,
+    summary: processesSummary.get(processId),
+    metadata: processesMetadata.get(processId)
+  }))
+
   return { processes, error, loading }
 }
 
 export function UseProcessProvider({ children }: { children: ReactNode }) {
-  const processesMap = useRef(new Map<string, IProcessInfo>())
-  const processesLoading = useRef(new Map<string, Promise<IProcessInfo>>())
   const { poolPromise } = usePool()
-  // Force an update when a processesMap entry has changed
+  const processSummaryCache = useRef(new Map<string, IProcessSummary>())
+  const processStateCache = useRef(new Map<string, IProcessState>())
+  const processMetadataCache = useRef(new Map<string, ProcessMetadata>())
+  const processSummaryLoading = useRef(
+    new Map<string, Promise<IProcessSummary>>()
+  )
+  const processStateLoading = useRef(new Map<string, Promise<IProcessState>>())
+  const processMetadataLoading = useRef(
+    new Map<string, Promise<ProcessMetadata>>()
+  )
+
+  // Force an update when a processes entry has changed
   const forceUpdate = useForceUpdate()
 
-  const loadProcessInfo = (processId: string) => {
+  // FULL VOCHAIN STATE
+  const loadProcessState = (processId: string) => {
     const prom = poolPromise
-      .then(pool => VotingApi.getProcess(processId, pool))
-      .then(processInfo => {
-        processesMap.current.set(processId, processInfo)
-        processesLoading.current.delete(processId)
+      .then(pool => VotingApi.getProcessState(processId, pool))
+      .then(processState => {
+        processStateCache.current.set(processId, processState)
+        processStateLoading.current.delete(processId)
         forceUpdate()
-        return processInfo
+        return processState
       })
       .catch(err => {
-        processesLoading.current.delete(processId)
+        processStateLoading.current.delete(processId)
         throw err
       })
 
     // let consumers await this promise multiple times
-    processesLoading.current.set(processId, prom)
+    processStateLoading.current.set(processId, prom)
 
     return prom
   }
 
-  // Lazy load data, only when needed
-  const resolveProcessInfo: (processId: string) => Promise<IProcessInfo> = (
+  const resolveProcessState: (processId: string) => Promise<IProcessState> = (
     processId: string
   ) => {
+    // Lazy load data, only if needed
     if (!processId) return Promise.resolve(null)
-    else if (processesLoading.current.has(processId)) {
+    else if (processStateLoading.current.has(processId)) {
       // still loading
-      return processesLoading.current.get(processId)
-    } else if (processesMap.current.has(processId)) {
+      return processStateLoading.current.get(processId)
+    } else if (processStateCache.current.has(processId)) {
       // cached
-      return Promise.resolve(processesMap.current.get(processId) || null)
+      return Promise.resolve(processStateCache.current.get(processId) || null)
     }
-    return loadProcessInfo(processId)
+    return loadProcessState(processId)
+  }
+
+  // PROCESS SUMMARY (VOCHAIN)
+  const loadProcessSummary = (processId: string) => {
+    const prom = poolPromise
+      .then(pool => VotingApi.getProcessSummary(processId, pool))
+      .then(processSummary => {
+        processSummaryCache.current.set(processId, processSummary)
+        processSummaryLoading.current.delete(processId)
+        forceUpdate()
+        return processSummary
+      })
+      .catch(err => {
+        processSummaryLoading.current.delete(processId)
+        throw err
+      })
+
+    // let consumers await this promise multiple times
+    processSummaryLoading.current.set(processId, prom)
+
+    return prom
+  }
+
+  const resolveProcessSummary: (
+    processId: string
+  ) => Promise<IProcessSummary> = (processId: string) => {
+    // Lazy load data, only if needed
+    if (!processId) return Promise.resolve(null)
+    else if (processSummaryLoading.current.has(processId)) {
+      // still loading
+      return processSummaryLoading.current.get(processId)
+    } else if (processSummaryCache.current.has(processId)) {
+      // cached
+      return Promise.resolve(processSummaryCache.current.get(processId) || null)
+    }
+    return loadProcessSummary(processId)
+  }
+
+  // PROCESS METADATA (IPFS)
+  const loadProcessMetadata = ({
+    processId,
+    ipfsUri
+  }: {
+    processId: string
+    ipfsUri?: string
+  }) => {
+    const prom = poolPromise
+      .then(pool => {
+        const uri =
+          ipfsUri || processSummaryCache.current?.get?.(processId)?.entityId
+        if (uri) {
+          return FileApi.fetchString(uri, pool).then(result =>
+            JSON.parse(result)
+          )
+        }
+        return VotingApi.getProcessMetadata(processId, pool)
+      })
+      .then(processMetadata => {
+        processMetadataCache.current.set(processId, processMetadata)
+        processMetadataLoading.current.delete(processId)
+        forceUpdate()
+        return processMetadata
+      })
+      .catch(err => {
+        processMetadataLoading.current.delete(processId)
+        throw err
+      })
+
+    // let consumers await this promise multiple times
+    processMetadataLoading.current.set(processId, prom)
+
+    return prom
+  }
+
+  const resolveProcessMetadata: ({
+    processId,
+    ipfsUri
+  }: {
+    processId: string
+    ipfsUri?: string
+  }) => Promise<ProcessMetadata> = ({ processId, ipfsUri }) => {
+    // Lazy load data, only if needed
+    if (!processId) return Promise.resolve(null)
+    else if (processMetadataLoading.current.has(processId)) {
+      // still loading
+      return processMetadataLoading.current.get(processId)
+    } else if (processMetadataCache.current.has(processId)) {
+      // cached
+      return Promise.resolve(
+        processMetadataCache.current.get(processId) || null
+      )
+    }
+    return loadProcessMetadata({ processId, ipfsUri })
   }
 
   return (
     <UseProcessContext.Provider
       value={{
-        processes: processesMap.current,
-        resolveProcessInfo,
-        refreshProcessInfo: loadProcessInfo
+        processesSummary: processSummaryCache.current,
+        processesState: processStateCache.current,
+        processesMetadata: processMetadataCache.current,
+        resolveProcessSummary,
+        refreshProcessSummary: loadProcessSummary,
+        resolveProcessState,
+        refreshProcessState: loadProcessState,
+        resolveProcessMetadata,
+        refreshProcessMetadata: loadProcessMetadata
       }}
     >
       {children}
