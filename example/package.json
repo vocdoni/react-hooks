@@ -6,8 +6,7 @@
   "scripts": {
     "start": "parcel index.html",
     "build": "parcel build index.html",
-    "clean": "rm -Rf .cache dist",
-    "preinstall": "npx npm-force-resolutions"
+    "clean": "rm -Rf .cache dist"
   },
   "dependencies": {
     "dvote-js": "^1.5.4",

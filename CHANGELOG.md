@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.1
+
+- Recompiling with a clean dvote-js version, relaxing the gateway client pool checks
+
 ## 0.8.0
 
 - BREAKING: `useProcess` and `useProcesses` now returns an object with a slightly different signature on `parameters`

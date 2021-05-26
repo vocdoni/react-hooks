@@ -7,7 +7,7 @@ import { VotingApi } from 'dvote-js'
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
 const ENVIRONMENT = "dev"
-const NETWORK_ID = "goerli"
+const NETWORK_ID = "rinkeby"
 const ENTITY_ID = "0x797B8Eb02e670bcd36AA6146c4766577E8EA9059"
 const PROCESS_IDS = [
   "0x732493935542b276402ad380e905d5363df798e19342a4d59c057f02060de313",
@@ -40,14 +40,13 @@ const PoolComponent = () => {
   const { pool, poolPromise, loading, error, retry, refresh } = usePool()
 
   useEffect(() => {
-    const operation = () => {
-      poolPromise
-        .then(gwPool => {
-          // Do something with the gateway pool instance
-          VotingApi.getResultsDigest(PROCESS_IDS[0], gwPool)
-        })
-    }
-    setTimeout(() => operation, 100)
+    poolPromise
+      .then(gwPool => {
+        // Do something with the gateway pool instance
+        VotingApi.getResultsDigest(PROCESS_IDS[0], gwPool)
+          .then(results => console.log(results))
+      })
+      .catch(err => console.error("RESULTS ERROR", err))
   }, [])
 
   return <div>
