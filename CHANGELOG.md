@@ -1,5 +1,6 @@
 # Changelog
 
+## 0.9.2
 ## 0.9.1
 
 - Upgrading dvote-js to provide a fallback for processes without metadata on the Vochain
