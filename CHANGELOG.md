@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.3
+## 0.8.2
+
+- Upgrading dvote-js
+
 ## 0.8.1
 
 - Recompiling with a clean dvote-js version, relaxing the gateway client pool checks
