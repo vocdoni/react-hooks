@@ -146,7 +146,14 @@ export function useProcess(processId: string) {
   return { process, error, loading, refresh: refreshProcessState }
 }
 
-/** Resolves the summary of the given processIds array */
+/**
+ * Resolves the summary of the given processIds array.
+ * NOTE: When `loading` updates from `true` to `false`, only the process params
+ * are guaranteed to be defined. This allows arranging processes by status.
+ *
+ * However, metadata may still be unresolved and the UI should display a loading indicator,
+ * when applicable.
+ * */
 export function useProcesses(processIds: string[]) {
   const processContext = useContext(UseProcessContext)
   const [error, setError] = useState<Nullable<string>>(null)
@@ -170,9 +177,15 @@ export function useProcesses(processIds: string[]) {
     // Load
     Promise.all(
       processIds.map(processId => {
-        return resolveProcessSummary(processId).then(summary =>
-          resolveProcessMetadata({ processId, ipfsUri: summary.metadata })
-        )
+        return resolveProcessSummary(processId)
+          .then(summary => {
+            // NOTE:
+            // Launching a metadata fetch without waiting for it
+            // This allows the `loading` tally to be completed, and allows the
+            // hook caller to show a spinner if the metadata is still not available
+            resolveProcessMetadata({ processId, ipfsUri: summary.metadata })
+          })
+          .catch(() => {})
       })
     )
       .then(() => {
@@ -180,10 +193,10 @@ export function useProcesses(processIds: string[]) {
         setLoading(false)
         setError(null)
       })
-      .catch(err => {
+      .catch(() => {
         if (ignore) return
         setLoading(false)
-        setError(err?.message || err?.toString?.())
+        setError('One or more processes failed to load')
       })
 
     return () => {
@@ -201,7 +214,7 @@ export function useProcesses(processIds: string[]) {
   const processes = processIds.map(processId => ({
     id: processId,
     summary: processesSummary.get(processId),
-    metadata: processesMetadata.get(processId)
+    metadata: processesMetadata.get(processId) || null
   }))
 
   return { processes, error, loading }

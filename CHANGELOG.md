@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.3
+
+- Upgrading dvote-js to avoid retrying IPFS metadata fetches indefinitely
+- Resolving processes metadata asynchronously, allowing the UI to split processes by state without waiting for the complete details to be settled
+
 ## 0.9.2
 ## 0.9.1
 
