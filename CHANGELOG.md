@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.4
+
+- Upgrading dvote-js make the `IProcessDetails` type more consistent
+
 ## 0.9.3
 
 - Upgrading dvote-js to avoid retrying IPFS metadata fetches indefinitely

@@ -13,7 +13,8 @@ import {
   VotingApi,
   ProcessMetadata,
   FileApi,
-  IProcessVochainStatus
+  IProcessVochainStatus,
+  IProcessDetails
 } from 'dvote-js'
 import { useForceUpdate } from './util'
 
@@ -137,7 +138,7 @@ export function useProcess(processId: string) {
     )
   }
 
-  const process = {
+  const process: IProcessDetails = {
     id: processId,
     state: processState,
     metadata: processMetadata
