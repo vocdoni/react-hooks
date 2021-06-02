@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.5
+
+- Upgrading dvote-js to better handle IPFS gw pool shifts
+- Catching IPFS metadata issues
+
 ## 0.9.4
 
 - Upgrading dvote-js make the `IProcessDetails` type more consistent

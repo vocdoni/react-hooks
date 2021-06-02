@@ -184,7 +184,10 @@ export function useProcesses(processIds: string[]) {
             // Launching a metadata fetch without waiting for it
             // This allows the `loading` tally to be completed, and allows the
             // hook caller to show a spinner if the metadata is still not available
-            resolveProcessMetadata({ processId, ipfsUri: summary.metadata })
+            resolveProcessMetadata({
+              processId,
+              ipfsUri: summary.metadata
+            }).catch(() => {})
           })
           .catch(() => {})
       })
