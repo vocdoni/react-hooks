@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.6
+
+- Fixing a minor bug
+
 ## 0.9.5
 
 - Upgrading dvote-js to better handle IPFS gw pool shifts

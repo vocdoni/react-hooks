@@ -327,7 +327,7 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
     const prom = poolPromise
       .then(pool => {
         const uri =
-          ipfsUri || processSummaryCache.current?.get?.(processId)?.entityId
+          ipfsUri || processSummaryCache.current?.get?.(processId)?.metadata
         if (uri) {
           return FileApi.fetchString(uri, pool).then(result =>
             JSON.parse(result)
