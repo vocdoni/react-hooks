@@ -211,7 +211,11 @@ export function useProcesses(processIds: string[]) {
     )
   }
 
-  const processes = processIds.map(processId => ({
+  const processes: {
+    id: string
+    summary: IProcessSummary
+    metadata?: ProcessMetadata
+  }[] = processIds.map(processId => ({
     id: processId,
     summary: processesSummary.get(processId),
     metadata: processesMetadata.get(processId) || null
