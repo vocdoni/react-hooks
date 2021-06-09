@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.7
+
+- Upgrading dvote-js to fucntion on XDAI stg
+
 ## 0.9.6
 
 - Fixing a minor bug
