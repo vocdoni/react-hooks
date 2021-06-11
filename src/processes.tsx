@@ -13,7 +13,7 @@ import {
   VotingApi,
   ProcessMetadata,
   FileApi,
-  IProcessVochainStatus,
+  VochainProcessStatus,
   IProcessDetails
 } from 'dvote-js'
 import { useForceUpdate } from './util'
@@ -397,7 +397,7 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
 /** Resolves the list of processIds for the given entity, applying the given filters */
 export function useEntityProcessIdList(
   entityId: string,
-  filters: { status?: IProcessVochainStatus; withResults?: boolean } = {}
+  filters: { status?: VochainProcessStatus; withResults?: boolean } = {}
 ) {
   const { poolPromise } = usePool()
   const [processIds, setProcessIds] = useState<string[]>([])

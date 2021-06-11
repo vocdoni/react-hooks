@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.8
+
+- Upgrades dvote-js to 1.9.9 to make the `IProcessState` more consistent
+
 ## 0.9.7
 
 - Upgrading dvote-js to fucntion on XDAI stg
