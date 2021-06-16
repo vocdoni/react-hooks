@@ -91,12 +91,7 @@ export function useProcess(processId: string) {
     resolveProcessMetadata,
     refreshProcessState
   } = processContext
-  const [processState, setProcessState] = useState<Nullable<IProcessState>>(
-    () => processesState.get(processId)
-  )
-  const [processMetadata, setProcessMetadata] = useState<
-    Nullable<ProcessMetadata>
-  >(() => processesMetadata.get(processId))
+
   const [error, setError] = useState<Nullable<string>>(null)
   const [loading, setLoading] = useState(true)
 
@@ -110,13 +105,11 @@ export function useProcess(processId: string) {
     resolveProcessState(processId)
       .then(newState => {
         if (ignore) throw null
-        setProcessState(newState)
 
         return resolveProcessMetadata({ processId, ipfsUri: newState.metadata })
       })
-      .then(newMetadata => {
+      .then(() => {
         if (ignore) return
-        setProcessMetadata(newMetadata)
         setLoading(false)
         setError(null)
       })
@@ -140,8 +133,8 @@ export function useProcess(processId: string) {
 
   const process: IProcessDetails = {
     id: processId,
-    state: processState,
-    metadata: processMetadata
+    state: processesState.get(processId),
+    metadata: processesMetadata.get(processId)
   }
 
   return { process, error, loading, refresh: refreshProcessState }
