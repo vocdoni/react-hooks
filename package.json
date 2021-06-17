@@ -1,7 +1,7 @@
 {
     "name": "@vocdoni/react-hooks",
     "description": "A set of React hooks for UI clients making use of the Vocdoni ecosystem, a universally verifiable, privacy-centric and scalable digital voting protocol.",
-    "version": "0.9.8",
+    "version": "0.9.9",
     "main": "dist/index.js",
     "module": "dist/react-hooks.esm.js",
     "typings": "dist/index.d.ts",
