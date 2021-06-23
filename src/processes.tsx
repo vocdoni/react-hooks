@@ -86,23 +86,23 @@ export function useProcess(processId: string) {
 
     if (!processId) return () => {}
 
-    setProcess({
-      id: processId,
-      metadata: undefined,
-      state: undefined
-    })
-
     setLoading(true)
 
     resolveProcessState(processId)
       .then(newState => {
-        setProcess(process => {
-          return { ...process, state: { ...newState } }
+        if (ignore) throw null
+
+        setProcess({
+          id: processId,
+          state: { ...newState },
+          metadata: undefined
         })
 
         return resolveProcessMetadata({ processId, ipfsUri: newState.metadata })
       })
       .then((metadata: ProcessMetadata) => {
+        if (ignore) return
+
         setProcess(process => {
           return { ...process, metadata: { ...metadata } }
         })
@@ -159,16 +159,24 @@ export function useProcesses(processIds: string[]) {
     data: IProcessSummary | ProcessMetadata
   ) => {
     setProcesses((prevProcesses: SummaryProces[]) => {
-      const process = prevProcesses.find(
-        (process: SummaryProces) => processId === process.id
-      )
-      const updatedProcess: SummaryProces = { ...process, [dataKey]: data }
+      const updatedProcesses = [...prevProcesses]
 
-      return prevProcesses.map((iteratorProcess: SummaryProces) =>
-        iteratorProcess.id === updatedProcess.id
-          ? updatedProcess
-          : iteratorProcess
-      )
+      for (let processIndex in updatedProcesses) {
+        const iterateProcess = updatedProcesses[processIndex]
+
+        if (iterateProcess && iterateProcess.id === processId) {
+          updatedProcesses[processIndex] = {
+            ...iterateProcess,
+            [dataKey]: data
+          }
+
+          return updatedProcesses
+        }
+      }
+
+      updatedProcesses.push({ id: processId, [dataKey]: data })
+
+      return updatedProcesses
     })
   }
 
@@ -182,13 +190,8 @@ export function useProcesses(processIds: string[]) {
 
     setLoading(true)
 
-    setProcesses(
-      processIds.map(processId => ({
-        id: processId,
-        summary: null,
-        metadata: null
-      }))
-    )
+    //Keep the list with non updated processes
+    setProcesses(processes.filter(process => processIds.includes(process.id)))
 
     // Load
     Promise.all(
@@ -241,10 +244,6 @@ export function useProcesses(processIds: string[]) {
 
 export function UseProcessProvider({ children }: { children: ReactNode }) {
   const { poolPromise } = usePool()
-  // const processSummaryCache = useRef(new Map<string, IProcessSummary>())
-  // const processStateCache = useRef(new Map<string, IProcessState>())
-  // const processMetadataCache = useRef(new Map<string, ProcessMetadata>())
-  // const processStateLoading = useRef(new Map<string, Promise<IProcessState>>())
 
   // FULL VOCHAIN STATE
   const loadProcessState = (processId: string) =>
