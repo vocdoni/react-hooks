@@ -131,13 +131,13 @@ export function useProcess(processId: string) {
   return { process, error, loading, refresh: refreshProcessState }
 }
 
-export type SummaryProces = {
+export type SummaryProcess = {
   id: string
   summary?: IProcessSummary
   metadata?: ProcessMetadata
 }
 
-export type Processes = Array<SummaryProces>
+export type Processes = Array<SummaryProcess>
 /**
  * Resolves the summary of the given processIds array.
  * NOTE: When `loading` updates from `true` to `false`, only the process params
@@ -158,7 +158,7 @@ export function useProcesses(processIds: string[]) {
     dataKey: 'metadata' | 'summary',
     data: IProcessSummary | ProcessMetadata
   ) => {
-    setProcesses((prevProcesses: SummaryProces[]) => {
+    setProcesses((prevProcesses: SummaryProcess[]) => {
       const updatedProcesses = [...prevProcesses]
 
       for (let processIndex in updatedProcesses) {
@@ -170,11 +170,9 @@ export function useProcesses(processIds: string[]) {
             [dataKey]: data
           }
 
-          return updatedProcesses
+          break
         }
       }
-
-      updatedProcesses.push({ id: processId, [dataKey]: data })
 
       return updatedProcesses
     })
@@ -191,7 +189,19 @@ export function useProcesses(processIds: string[]) {
     setLoading(true)
 
     //Keep the list with non updated processes
-    setProcesses(processes.filter(process => processIds.includes(process.id)))
+    setProcesses(
+      processIds.map((processId: string) => {
+        const cachedProcess = processes.find(
+          (process: SummaryProcess) => process.id === processId
+        )
+
+        return (
+          cachedProcess || {
+            id: processId
+          }
+        )
+      })
+    )
 
     // Load
     Promise.all(
