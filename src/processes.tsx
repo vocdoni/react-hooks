@@ -138,6 +138,8 @@ export type SummaryProcess = {
 }
 
 export type Processes = Array<SummaryProcess>
+
+type CancelUpdate = () => void
 /**
  * Resolves the summary of the given processIds array.
  * NOTE: When `loading` updates from `true` to `false`, only the process params
@@ -151,7 +153,11 @@ export function useProcesses(processIds: string[]) {
   const [error, setError] = useState<Nullable<string>>(null)
   const [processes, setProcesses] = useState<Processes>([])
   const [loading, setLoading] = useState(true)
-  const { resolveProcessSummary, resolveProcessMetadata } = processContext
+  const {
+    resolveProcessSummary,
+    refreshProcessSummary,
+    resolveProcessMetadata
+  } = processContext
 
   const updateProcessData = (
     processId: string,
@@ -178,20 +184,18 @@ export function useProcesses(processIds: string[]) {
     })
   }
 
-  useEffect(() => {
-    if (!processIds || !processIds.length) {
-      setLoading(false)
-      return () => {}
-    }
-
+  const resolveProcesses = (
+    resolveProcessIds: string[],
+    refreshCache = false
+  ): CancelUpdate => {
     let ignore = false
 
     setLoading(true)
 
     //Keep the list with non updated processes
-    setProcesses(
-      processIds.map((processId: string) => {
-        const cachedProcess = processes.find(
+    setProcesses((prevProcesses: SummaryProcess[]) =>
+      resolveProcessIds.map((processId: string) => {
+        const cachedProcess = prevProcesses.find(
           (process: SummaryProcess) => process.id === processId
         )
 
@@ -205,8 +209,12 @@ export function useProcesses(processIds: string[]) {
 
     // Load
     Promise.all(
-      processIds.map(processId => {
-        return resolveProcessSummary(processId)
+      resolveProcessIds.map(processId => {
+        const retrieveSummary = refreshCache
+          ? refreshProcessSummary
+          : resolveProcessSummary
+
+        return retrieveSummary(processId)
           .then((summary: IProcessSummary) => {
             // NOTE:
             // Launching a metadata fetch without waiting for it
@@ -240,6 +248,23 @@ export function useProcesses(processIds: string[]) {
     return () => {
       ignore = true
     }
+  }
+
+  const refreshProcesses = (): CancelUpdate => {
+    return resolveProcesses(processIds, true)
+  }
+
+  useEffect(() => {
+    if (!processIds || !processIds.length) {
+      setLoading(false)
+      return () => {}
+    }
+
+    const cancelRefresh = resolveProcesses(processIds)
+
+    return () => {
+      cancelRefresh()
+    }
   }, [processIds.join('')])
 
   if (processContext === null) {
@@ -249,7 +274,7 @@ export function useProcesses(processIds: string[]) {
     )
   }
 
-  return { processes, error, loading }
+  return { processes, refreshProcesses, error, loading }
 }
 
 export function UseProcessProvider({ children }: { children: ReactNode }) {
