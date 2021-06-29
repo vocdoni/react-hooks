@@ -184,7 +184,9 @@ export function useProcesses(processIds: string[], fromCache = true) {
     })
   }
 
-  const resolveProcesses = (processIdsToResolve: string[]): CancelUpdate => {
+  const resolveProcessesEffect = (
+    processIdsToResolve: string[]
+  ): CancelUpdate => {
     let ignore = false
 
     setLoading(true)
@@ -213,6 +215,7 @@ export function useProcesses(processIds: string[], fromCache = true) {
 
         return retrieveSummary(processId)
           .then((summary: IProcessSummary) => {
+            if (ignore) return
             // NOTE:
             // Launching a metadata fetch without waiting for it
             // This allows the `loading` tally to be completed, and allows the
@@ -224,6 +227,8 @@ export function useProcesses(processIds: string[], fromCache = true) {
               ipfsUri: summary.metadata
             })
               .then(metadata => {
+                if (ignore) return
+
                 updateProcessData(processId, 'metadata', metadata)
               })
               .catch(() => {})
@@ -247,8 +252,8 @@ export function useProcesses(processIds: string[], fromCache = true) {
     }
   }
 
-  const reloadProcesses = (): CancelUpdate => {
-    return resolveProcesses(processIds)
+  const reloadProcesses = () => {
+    resolveProcessesEffect(processIds)
   }
 
   useEffect(() => {
@@ -257,7 +262,7 @@ export function useProcesses(processIds: string[], fromCache = true) {
       return () => {}
     }
 
-    const cancelRefresh = resolveProcesses(processIds)
+    const cancelRefresh = resolveProcessesEffect(processIds)
 
     return () => {
       cancelRefresh()
