@@ -148,7 +148,7 @@ type CancelUpdate = () => void
  * However, metadata may still be unresolved and the UI should display a loading indicator,
  * when applicable.
  * */
-export function useProcesses(processIds: string[]) {
+export function useProcesses(processIds: string[], fromCache = true) {
   const processContext = useContext(UseProcessContext)
   const [error, setError] = useState<Nullable<string>>(null)
   const [processes, setProcesses] = useState<Processes>([])
@@ -184,17 +184,14 @@ export function useProcesses(processIds: string[]) {
     })
   }
 
-  const resolveProcesses = (
-    resolveProcessIds: string[],
-    refreshCache = false
-  ): CancelUpdate => {
+  const resolveProcesses = (processIdsToResolve: string[]): CancelUpdate => {
     let ignore = false
 
     setLoading(true)
 
     //Keep the list with non updated processes
     setProcesses((prevProcesses: SummaryProcess[]) =>
-      resolveProcessIds.map((processId: string) => {
+      processIdsToResolve.map((processId: string) => {
         const cachedProcess = prevProcesses.find(
           (process: SummaryProcess) => process.id === processId
         )
@@ -209,10 +206,10 @@ export function useProcesses(processIds: string[]) {
 
     // Load
     Promise.all(
-      resolveProcessIds.map(processId => {
-        const retrieveSummary = refreshCache
-          ? refreshProcessSummary
-          : resolveProcessSummary
+      processIdsToResolve.map(processId => {
+        const retrieveSummary = fromCache
+          ? resolveProcessSummary
+          : refreshProcessSummary
 
         return retrieveSummary(processId)
           .then((summary: IProcessSummary) => {
@@ -250,8 +247,8 @@ export function useProcesses(processIds: string[]) {
     }
   }
 
-  const refreshProcesses = (): CancelUpdate => {
-    return resolveProcesses(processIds, true)
+  const reloadProcesses = (): CancelUpdate => {
+    return resolveProcesses(processIds)
   }
 
   useEffect(() => {
@@ -274,7 +271,7 @@ export function useProcesses(processIds: string[]) {
     )
   }
 
-  return { processes, refreshProcesses, error, loading }
+  return { processes, reloadProcesses, error, loading }
 }
 
 export function UseProcessProvider({ children }: { children: ReactNode }) {
