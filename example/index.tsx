@@ -3,7 +3,7 @@ import * as React from 'react'
 import { useEffect } from 'react'
 import * as ReactDOM from 'react-dom'
 import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses, UseEntityProvider, useEntity, UseBlockStatusProvider, useDateAtBlock, useBlockAtDate, useBlockStatus, useBlockHeight, useEntityProcessIdList } from '../src/index'
-import { VotingApi } from 'dvote-js'
+import { ProcessStatus, VotingApi } from 'dvote-js'
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
 const ENVIRONMENT = "dev"
@@ -116,7 +116,7 @@ const EntityComponent = () => {
 }
 
 const EntityProcessesComponent = () => {
-  const { processIds, loading, error } = useEntityProcessIdList(ENTITY_ID, { status: "READY", withResults: false })
+  const { processIds, loading, error } = useEntityProcessIdList(ENTITY_ID, { status: ProcessStatus.READY, withResults: false })
 
   return <div>
     <h2>Entity processes</h2>
