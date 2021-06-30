@@ -128,7 +128,29 @@ export function useProcess(processId: string) {
     )
   }
 
-  return { process, error, loading, refresh: refreshProcessState }
+  const refresh = (processId: string) => {
+    refreshProcessState(processId)
+      .then(newState => {
+        setProcess({
+          id: processId,
+          state: { ...newState },
+          metadata: undefined
+        })
+
+        return resolveProcessMetadata({ processId, ipfsUri: newState.metadata })
+      })
+      .then((metadata: ProcessMetadata) => {
+        setProcess(process => {
+          return { ...process, metadata: { ...metadata } }
+        })
+        setError(null)
+      })
+      .catch(err => {
+        setError(err?.message || err?.toString?.())
+      })
+  }
+
+  return { process, error, loading, refresh }
 }
 
 export type SummaryProcess = {
@@ -148,7 +170,7 @@ type CancelUpdate = () => void
  * However, metadata may still be unresolved and the UI should display a loading indicator,
  * when applicable.
  * */
-export function useProcesses(processIds: string[], fromCache = true) {
+export function useProcesses(processIds: string[]) {
   const processContext = useContext(UseProcessContext)
   const [error, setError] = useState<Nullable<string>>(null)
   const [processes, setProcesses] = useState<Processes>([])
@@ -185,7 +207,8 @@ export function useProcesses(processIds: string[], fromCache = true) {
   }
 
   const resolveProcessesEffect = (
-    processIdsToResolve: string[]
+    processIdsToResolve: string[],
+    fromCache = true
   ): CancelUpdate => {
     let ignore = false
 
@@ -253,7 +276,7 @@ export function useProcesses(processIds: string[], fromCache = true) {
   }
 
   const reloadProcesses = () => {
-    resolveProcessesEffect(processIds)
+    resolveProcessesEffect(processIds, false)
   }
 
   useEffect(() => {
