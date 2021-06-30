@@ -1,4 +1,11 @@
 # Changelog
+## 0.9.10
+
+- Fix reload process caused by state.
+- Improve cache process and processes.
+- Use state for the processes
+
+## 0.9.9
 
 ## 0.9.8
 
