@@ -27,7 +27,11 @@ export function cacheService<T>({
 
         resolve(data)
       })
-      .catch(reject)
+      .catch(error => {
+        requests.delete(options.id)
+
+        reject(error)
+      })
   })
 
   return promise
