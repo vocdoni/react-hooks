@@ -10,6 +10,10 @@ interface IUseCacheProps<T> {
 
 const requests = new Map<string, any>([])
 
+export function cleanRegister(register: string) {
+  requests.delete(register)
+}
+
 export function cacheService<T>({
   options,
   request
@@ -27,11 +31,7 @@ export function cacheService<T>({
 
         resolve(data)
       })
-      .catch(error => {
-        requests.delete(options.id)
-
-        reject(error)
-      })
+      .catch(reject)
   })
 
   return promise
