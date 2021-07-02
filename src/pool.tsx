@@ -7,7 +7,11 @@ import React, {
 } from 'react'
 import { EthNetworkID, GatewayPool, VocdoniEnvironment } from 'dvote-js'
 import { Nullable } from './types'
-import { Deferred } from './util'
+import { Deferred, delayedPromise } from './util'
+
+const RETRY_INTERVAL = 1000 * 5 // 5 seconds
+const RETRY_COUNT_DEFAULT_VALUE = 5
+let initRetryCount = RETRY_COUNT_DEFAULT_VALUE
 
 interface IPoolContext {
   /** The current gateway pool client (use poolPromise instead) */
@@ -21,7 +25,9 @@ interface IPoolContext {
   /** Re-run the discovery process on an already working connection */
   refresh: () => Promise<GatewayPool>
   /** If the initial connection failed, starts the discovery from scratch */
-  retry: () => Promise<GatewayPool>
+  retry: ({
+    retryOnError
+  }: { retryOnError?: boolean } | undefined) => Promise<GatewayPool>
 }
 
 export const UsePoolContext = createContext<IPoolContext>({
@@ -29,8 +35,8 @@ export const UsePoolContext = createContext<IPoolContext>({
   poolPromise: null as any,
   loading: false,
   error: null,
-  refresh: () => Promise.reject(new Error('Not ready')),
-  retry: () => Promise.reject(new Error('Not ready'))
+  refresh: () => Promise.reject(new Error('Not ready yet')),
+  retry: () => Promise.reject(new Error('Not ready yet'))
 })
 
 export function usePool() {
@@ -67,7 +73,7 @@ export function UsePoolProvider({
 
   // Initial load
   useEffect(() => {
-    init()
+    init({ retryOnError: true })
 
     // Cleanup
     return () => {
@@ -76,7 +82,7 @@ export function UsePoolProvider({
   }, [environment, bootnodeUri, networkId])
 
   // Do the initial discovery
-  const init = () => {
+  const init = ({ retryOnError }: { retryOnError?: boolean } = {}) => {
     setLoading(true)
 
     return GatewayPool.discover({
@@ -91,6 +97,7 @@ export function UsePoolProvider({
         setPool(pool)
         setError(null)
         setLoading(false)
+        initRetryCount = RETRY_COUNT_DEFAULT_VALUE
 
         // Notify promise awaiters
         if (!deferred.settled) {
@@ -103,16 +110,21 @@ export function UsePoolProvider({
         return pool
       })
       .catch(err => {
+        initRetryCount--
+
         setLoading(false)
         setError((err && err.message) || err?.toString())
 
-        // Promise waiters are not notified of errors, so the initial
-        // `.then` keeps working without further "retry" elsewhere
+        if (retryOnError && initRetryCount >= 0) {
+          return delayedPromise(RETRY_INTERVAL, init({ retryOnError: true }))
+        }
+
+        // Notify promise waiters that the process failed
         throw err
       })
   }
 
-  // Refresh an already working pool
+  // Refresh the nodes of an already working pool
   const refresh = () => {
     setLoading(true)
 
