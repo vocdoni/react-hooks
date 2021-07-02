@@ -10,7 +10,7 @@ import {
   VochainProcessStatus,
   IProcessDetails
 } from 'dvote-js'
-import { cacheService } from './cache-service'
+import { cacheService, cleanRegister } from './cache-service'
 
 interface IProcessContext {
   resolveProcessState: (processId: string) => Promise<Nullable<IProcessState>>
@@ -33,6 +33,7 @@ interface IProcessContext {
     processId: string
     ipfsUri?: string
   }) => Promise<ProcessMetadata>
+  invalidateRegister: (register: CacheRegisterPrefix, processId: string) => void
 }
 
 export const UseProcessContext = React.createContext<IProcessContext>({
@@ -62,6 +63,11 @@ export const UseProcessContext = React.createContext<IProcessContext>({
     )
   },
   refreshProcessMetadata: () => {
+    throw new Error(
+      'Please, define your custom logic alongside <UseProcessContext.Provider> or place UseProcessProvider at the root of your app'
+    )
+  },
+  invalidateRegister: () => {
     throw new Error(
       'Please, define your custom logic alongside <UseProcessContext.Provider> or place UseProcessProvider at the root of your app'
     )
@@ -302,6 +308,12 @@ export function useProcesses(processIds: string[]) {
   return { processes, reloadProcesses, error, loading }
 }
 
+export enum CacheRegisterPrefix {
+  State = 'process-state-',
+  Summary = 'process-summary-',
+  Metadata = 'process-metadata-'
+}
+
 export function UseProcessProvider({ children }: { children: ReactNode }) {
   const { poolPromise } = usePool()
 
@@ -318,12 +330,11 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
   ): Promise<IProcessState> => {
     if (!processId) return Promise.resolve(null)
 
-    return poolPromise.then(pool =>
-      cacheService<IProcessState>({
-        options: { id: `process-state-${processId}`, regenerate },
-        request: () => VotingApi.getProcessState(processId, pool)
-      })
-    )
+    return cacheService<IProcessState>({
+      options: { id: `${CacheRegisterPrefix.State}${processId}`, regenerate },
+      request: () =>
+        poolPromise.then(pool => VotingApi.getProcessState(processId, pool))
+    })
   }
 
   // PROCESS SUMMARY (VOCHAIN)
@@ -339,12 +350,11 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
     // Lazy load data, only if needed
     if (!processId) return Promise.resolve(null)
 
-    return poolPromise.then(pool =>
-      cacheService<IProcessSummary>({
-        options: { id: `process-summary-${processId}`, regenerate },
-        request: () => VotingApi.getProcessSummary(processId, pool)
-      })
-    )
+    return cacheService<IProcessSummary>({
+      options: { id: `${CacheRegisterPrefix.Summary}${processId}`, regenerate },
+      request: () =>
+        poolPromise.then(pool => VotingApi.getProcessSummary(processId, pool))
+    })
   }
   // PROCESS METADATA (IPFS)
   const loadProcessMetadata = ({
@@ -371,10 +381,13 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
     // Lazy load data, only if needed
     if (!processId) return Promise.resolve(null)
 
-    return poolPromise.then(pool =>
-      cacheService<ProcessMetadata>({
-        options: { id: `process-metadata-${processId}`, regenerate },
-        request: () => {
+    return cacheService<ProcessMetadata>({
+      options: {
+        id: `${CacheRegisterPrefix.Metadata}${processId}`,
+        regenerate
+      },
+      request: () =>
+        poolPromise.then(pool => {
           if (ipfsUri) {
             return FileApi.fetchString(ipfsUri, pool).then(result =>
               JSON.parse(result)
@@ -382,9 +395,15 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
           }
 
           return VotingApi.getProcessMetadata(processId, pool)
-        }
-      })
-    )
+        })
+    })
+  }
+
+  const invalidateRegister = (
+    registerPrefix: CacheRegisterPrefix,
+    processId: string
+  ) => {
+    cleanRegister(`${registerPrefix}${processId}`)
   }
 
   return (
@@ -395,7 +414,8 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
         resolveProcessState,
         refreshProcessState: loadProcessState,
         resolveProcessMetadata,
-        refreshProcessMetadata: loadProcessMetadata
+        refreshProcessMetadata: loadProcessMetadata,
+        invalidateRegister
       }}
     >
       {children}
