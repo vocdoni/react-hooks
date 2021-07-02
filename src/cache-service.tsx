@@ -1,38 +1,35 @@
-interface IOptions {
-  id: string
-  regenerate?: boolean
-}
-
-interface IUseCacheProps<T> {
-  options: IOptions
+interface ICacheProps<T> {
+  /** The unique key identifying the entry to cache */
+  key: string
+  /** Optionally, force redoing the request again and overwriting the value */
+  forceRefresh?: boolean
+  /** The function to execute, returning the promise wose result will be cached */
   request: () => Promise<T>
 }
 
-const requests = new Map<string, any>([])
+export class CacheService {
+  static requests = new Map<string, any>([])
 
-export function cleanRegister(register: string) {
-  requests.delete(register)
-}
-
-export function cacheService<T>({
-  options,
-  request
-}: IUseCacheProps<T>): Promise<T> {
-  const promise = new Promise<T>((resolve, reject) => {
-    if (requests.has(options.id) && !options.regenerate) {
-      resolve(requests.get(options.id))
-
-      return
+  /** Performs a requests if not already cached, and returns the cached value otherwise */
+  static get<T>({ key, forceRefresh, request }: ICacheProps<T>): Promise<T> {
+    if (CacheService.requests.has(key) && !forceRefresh) {
+      return Promise.resolve(CacheService.requests.get(key))
     }
 
-    request()
-      .then((data: T) => {
-        requests.set(options.id, data)
+    return request().then((data: T) => {
+      CacheService.requests.set(key, data)
 
-        resolve(data)
-      })
-      .catch(reject)
-  })
+      return data
+    })
+  }
 
-  return promise
+  /** Invalidates the current value for the given key on the cache */
+  static remove(key: string) {
+    CacheService.requests.delete(key)
+  }
+
+  /** Clears the entire cache */
+  static clearAll() {
+    CacheService.requests.clear()
+  }
 }
