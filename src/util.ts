@@ -22,3 +22,10 @@ export class Deferred<T> {
   resolve: (value: T | PromiseLike<T>) => void
   reject: (error: Error) => void
 }
+
+/** Waits `delay` milliseconds and executes the given `fn` returning its promise */
+export function delayedPromise<T>(delay: number, fn: () => T) {
+  return new Promise(resolve => {
+    setTimeout(resolve, delay)
+  }).then(() => fn())
+}
