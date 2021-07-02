@@ -10,7 +10,7 @@ import {
   VochainProcessStatus,
   IProcessDetails
 } from 'dvote-js'
-import { cacheService, cleanRegister } from './cache-service'
+import { CacheService } from './cache-service'
 
 interface IProcessContext {
   resolveProcessState: (processId: string) => Promise<Nullable<IProcessState>>
@@ -326,12 +326,13 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
 
   const getProcessState = (
     processId: string,
-    regenerate: boolean
+    forceRefresh: boolean = false
   ): Promise<IProcessState> => {
     if (!processId) return Promise.resolve(null)
 
-    return cacheService<IProcessState>({
-      options: { id: `${CacheRegisterPrefix.State}${processId}`, regenerate },
+    return CacheService.get<IProcessState>({
+      key: `${CacheRegisterPrefix.State}${processId}`,
+      forceRefresh,
       request: () =>
         poolPromise.then(pool => VotingApi.getProcessState(processId, pool))
     })
@@ -346,12 +347,16 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
   ) => Promise<IProcessSummary> = (processId: string) =>
     getProcessSummary(processId, false)
 
-  const getProcessSummary = (processId: string, regenerate: boolean) => {
+  const getProcessSummary = (
+    processId: string,
+    forceRefresh: boolean = false
+  ) => {
     // Lazy load data, only if needed
     if (!processId) return Promise.resolve(null)
 
-    return cacheService<IProcessSummary>({
-      options: { id: `${CacheRegisterPrefix.Summary}${processId}`, regenerate },
+    return CacheService.get<IProcessSummary>({
+      key: `${CacheRegisterPrefix.Summary}${processId}`,
+      forceRefresh,
       request: () =>
         poolPromise.then(pool => VotingApi.getProcessSummary(processId, pool))
     })
@@ -376,16 +381,14 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
 
   const getProcessMetadata = (
     { processId, ipfsUri },
-    regenerate
+    forceRefresh: boolean = false
   ): Promise<ProcessMetadata> => {
     // Lazy load data, only if needed
     if (!processId) return Promise.resolve(null)
 
-    return cacheService<ProcessMetadata>({
-      options: {
-        id: `${CacheRegisterPrefix.Metadata}${processId}`,
-        regenerate
-      },
+    return CacheService.get<ProcessMetadata>({
+      key: `${CacheRegisterPrefix.Metadata}${processId}`,
+      forceRefresh,
       request: () =>
         poolPromise.then(pool => {
           if (ipfsUri) {
@@ -403,7 +406,7 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
     registerPrefix: CacheRegisterPrefix,
     processId: string
   ) => {
-    cleanRegister(`${registerPrefix}${processId}`)
+    CacheService.remove(`${registerPrefix}${processId}`)
   }
 
   return (
