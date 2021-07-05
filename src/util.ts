@@ -24,8 +24,8 @@ export class Deferred<T> {
 }
 
 /** Waits `delay` milliseconds and executes the given `fn` returning its promise */
-export function delayedPromise<T>(delay: number, fn: () => T) {
+export function delayedPromise<T>(fn: () => Promise<T>, delayMs: number) {
   return new Promise(resolve => {
-    setTimeout(resolve, delay)
+    setTimeout(resolve, delayMs)
   }).then(() => fn())
 }

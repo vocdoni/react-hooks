@@ -10,7 +10,7 @@ import { Nullable } from './types'
 import { Deferred, delayedPromise } from './util'
 
 const RETRY_INTERVAL = 1000 * 5 // 5 seconds
-const RETRY_COUNT_DEFAULT_VALUE = 5
+const RETRY_COUNT_DEFAULT_VALUE = 15
 let initRetryCount = RETRY_COUNT_DEFAULT_VALUE
 
 interface IPoolContext {
@@ -116,7 +116,10 @@ export function UsePoolProvider({
         setError((err && err.message) || err?.toString())
 
         if (retryOnError && initRetryCount >= 0) {
-          return delayedPromise(RETRY_INTERVAL, init({ retryOnError: true }))
+          return delayedPromise(
+            () => init({ retryOnError: true }),
+            RETRY_INTERVAL
+          )
         }
 
         // Notify promise waiters that the process failed
