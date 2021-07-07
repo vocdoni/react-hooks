@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState
 } from 'react'
+import { Wallet } from 'ethers'
 import { Nullable } from './types'
 import { usePool } from './pool'
 import { EntityApi, EntityMetadata } from 'dvote-js'
@@ -13,12 +14,22 @@ import { useForceUpdate } from './util'
 interface IEntityContext {
   entities: Map<string, EntityMetadata>
   resolveEntityMetadata: (entityId: string) => Promise<Nullable<EntityMetadata>>
+  updateEntityMetadata: (
+    entityId: string,
+    wallet: Wallet,
+    metadata: EntityMetadata
+  ) => Promise<Nullable<EntityMetadata>>
   refreshEntityMetadata: (entityId: string) => Promise<EntityMetadata>
 }
 
 export const UseEntityContext = React.createContext<IEntityContext>({
   entities: new Map<string, EntityMetadata>(),
   resolveEntityMetadata: () => {
+    throw new Error(
+      'Please, define your custom logic alongside <UseEntityContext.Provider> or place UseEntityProvider at the root of your app'
+    )
+  },
+  updateEntityMetadata: () => {
     throw new Error(
       'Please, define your custom logic alongside <UseEntityContext.Provider> or place UseEntityProvider at the root of your app'
     )
@@ -32,7 +43,7 @@ export const UseEntityContext = React.createContext<IEntityContext>({
 
 export function useEntity(entityId: string) {
   const entityContext = useContext(UseEntityContext)
-  const { resolveEntityMetadata } = entityContext
+  const { resolveEntityMetadata, updateEntityMetadata } = entityContext
   const [metadata, setMetadata] = useState<Nullable<EntityMetadata>>(null)
   const [error, setError] = useState<Nullable<string>>(null)
   const [loading, setLoading] = useState(false) // to force rerender after the referenced entities change
@@ -62,6 +73,11 @@ export function useEntity(entityId: string) {
     }
   }, [entityId])
 
+  const storeMetadata = async (wallet: Wallet, metadata: EntityMetadata) => {
+    await updateEntityMetadata(entityId, wallet, metadata)
+    setMetadata(metadata)
+  }
+
   if (entityContext === null) {
     throw new Error(
       'useEntity() can only be used inside of <UseEntityProvider />, ' +
@@ -69,7 +85,7 @@ export function useEntity(entityId: string) {
     )
   }
 
-  return { metadata, error, loading }
+  return { metadata, error, loading, updateEntityMetadata: storeMetadata }
 }
 
 export function UseEntityProvider({ children }: { children: ReactNode }) {
@@ -114,11 +130,26 @@ export function UseEntityProvider({ children }: { children: ReactNode }) {
     return loadEntityMetadata(entityId)
   }
 
+  const updateEntityMetadata = async (
+    entityId: string,
+    wallet: Wallet,
+    metadata: EntityMetadata
+  ): Promise<EntityMetadata> => {
+    const pool = await poolPromise
+
+    await EntityApi.setMetadata(entityId, metadata, wallet, pool)
+
+    entitiesMap.current.set(entityId, metadata)
+
+    return metadata
+  }
+
   return (
     <UseEntityContext.Provider
       value={{
         entities: entitiesMap.current,
         resolveEntityMetadata,
+        updateEntityMetadata,
         refreshEntityMetadata: loadEntityMetadata
       }}
     >
