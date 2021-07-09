@@ -1,29 +1,21 @@
-import React, {
-  ReactNode,
-  useContext,
-  useEffect,
-  useRef,
-  useState
-} from 'react'
-import { Wallet } from 'ethers'
+import React, { ReactNode, useContext, useEffect, useState } from 'react'
+import { Wallet, Signer } from 'ethers'
 import { Nullable } from './types'
 import { usePool } from './pool'
 import { EntityApi, EntityMetadata } from 'dvote-js'
-import { useForceUpdate } from './util'
+import { CacheService } from './cache-service'
 
 interface IEntityContext {
-  entities: Map<string, EntityMetadata>
   resolveEntityMetadata: (entityId: string) => Promise<Nullable<EntityMetadata>>
   updateEntityMetadata: (
     entityId: string,
-    wallet: Wallet,
-    metadata: EntityMetadata
+    metadata: EntityMetadata,
+    wallet: Wallet | Signer
   ) => Promise<Nullable<EntityMetadata>>
   refreshEntityMetadata: (entityId: string) => Promise<EntityMetadata>
 }
 
 export const UseEntityContext = React.createContext<IEntityContext>({
-  entities: new Map<string, EntityMetadata>(),
   resolveEntityMetadata: () => {
     throw new Error(
       'Please, define your custom logic alongside <UseEntityContext.Provider> or place UseEntityProvider at the root of your app'
@@ -73,9 +65,18 @@ export function useEntity(entityId: string) {
     }
   }, [entityId])
 
-  const storeMetadata = async (wallet: Wallet, metadata: EntityMetadata) => {
-    await updateEntityMetadata(entityId, wallet, metadata)
-    setMetadata(metadata)
+  const updateMetadata = (
+    metadata: EntityMetadata,
+    wallet: Wallet | Signer
+  ): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      updateEntityMetadata(entityId, metadata, wallet)
+        .then(() => {
+          setMetadata(metadata)
+          resolve()
+        })
+        .catch(error => reject(error))
+    })
   }
 
   if (entityContext === null) {
@@ -85,69 +86,60 @@ export function useEntity(entityId: string) {
     )
   }
 
-  return { metadata, error, loading, updateEntityMetadata: storeMetadata }
+  return { metadata, error, loading, updateMetadata }
 }
+const CACHED_ENTITY_METADATA_PREFIX = 'entity-metadata-'
 
 export function UseEntityProvider({ children }: { children: ReactNode }) {
-  const entitiesMap = useRef(new Map<string, EntityMetadata>())
-  const entitiesLoading = useRef(new Map<string, Promise<EntityMetadata>>())
   const { poolPromise } = usePool()
-  // Force an update when a processesMap entry has changed
-  const forceUpdate = useForceUpdate()
 
+  const getEntityMetadata = (
+    entityId: string,
+    forceRefresh: boolean
+  ): Promise<EntityMetadata> => {
+    return CacheService.get<EntityMetadata>({
+      key: `${CACHED_ENTITY_METADATA_PREFIX}${entityId}`,
+      forceRefresh,
+      request: () =>
+        poolPromise.then(pool => EntityApi.getMetadata(entityId, pool))
+    })
+  }
   const loadEntityMetadata = (entityId: string) => {
-    const prom = poolPromise
-      .then(pool => EntityApi.getMetadata(entityId, pool))
-      .then(metadata => {
-        entitiesMap.current.set(entityId, metadata)
-        entitiesLoading.current.delete(entityId)
-        forceUpdate()
-        return metadata
-      })
-      .catch(err => {
-        entitiesLoading.current.delete(entityId)
-        throw err
-      })
-
-    // let consumers await this promise multiple times
-    entitiesLoading.current.set(entityId, prom)
-
-    return prom
+    return getEntityMetadata(entityId, true)
   }
 
   // Lazy load data, only when needed
   const resolveEntityMetadata: (entityId: string) => Promise<EntityMetadata> = (
     entityId: string
   ) => {
-    if (!entityId) return Promise.resolve(null)
-    else if (entitiesLoading.current.has(entityId)) {
-      // still loading
-      return entitiesLoading.current.get(entityId)
-    } else if (entitiesMap.current.has(entityId)) {
-      // cached
-      return Promise.resolve(entitiesMap.current.get(entityId) || null)
-    }
-    return loadEntityMetadata(entityId)
+    return getEntityMetadata(entityId, false)
   }
 
-  const updateEntityMetadata = async (
+  const updateEntityMetadata = (
     entityId: string,
-    wallet: Wallet,
-    metadata: EntityMetadata
+    metadata: EntityMetadata,
+    wallet: Wallet | Signer
   ): Promise<EntityMetadata> => {
-    const pool = await poolPromise
-
-    await EntityApi.setMetadata(entityId, metadata, wallet, pool)
-
-    entitiesMap.current.set(entityId, metadata)
-
-    return metadata
+    return new Promise((resolve, reject) => {
+      poolPromise.then(pool => {
+        EntityApi.setMetadata(entityId, metadata, wallet, pool)
+          .then(() => {
+            CacheService.get<EntityMetadata>({
+              key: `${CACHED_ENTITY_METADATA_PREFIX}${entityId}`,
+              forceRefresh: true,
+              request: () => Promise.resolve(metadata)
+            }).then(cachedMetadata => {
+              resolve(cachedMetadata)
+            })
+          })
+          .catch(error => reject(error))
+      })
+    })
   }
 
   return (
     <UseEntityContext.Provider
       value={{
-        entities: entitiesMap.current,
         resolveEntityMetadata,
         updateEntityMetadata,
         refreshEntityMetadata: loadEntityMetadata

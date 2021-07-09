@@ -1,4 +1,9 @@
 # Changelog
+## 0.9.11
+
+- Add new cache on the entity hook
+- Add update method to allow update the entity
+
 ## 0.9.10
 
 - Fix reload process caused by state.
