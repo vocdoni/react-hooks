@@ -68,16 +68,10 @@ export function useEntity(entityId: string) {
   const updateMetadata = (
     metadata: EntityMetadata,
     wallet: Wallet | Signer
-  ): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      updateEntityMetadata(entityId, metadata, wallet)
-        .then(() => {
-          setMetadata(metadata)
-          resolve()
-        })
-        .catch(error => reject(error))
+  ): Promise<void> =>
+    updateEntityMetadata(entityId, metadata, wallet).then(() => {
+      setMetadata(metadata)
     })
-  }
 
   if (entityContext === null) {
     throw new Error(
@@ -119,23 +113,17 @@ export function UseEntityProvider({ children }: { children: ReactNode }) {
     entityId: string,
     metadata: EntityMetadata,
     wallet: Wallet | Signer
-  ): Promise<EntityMetadata> => {
-    return new Promise((resolve, reject) => {
-      poolPromise.then(pool => {
-        EntityApi.setMetadata(entityId, metadata, wallet, pool)
-          .then(() => {
-            CacheService.get<EntityMetadata>({
-              key: `${CACHED_ENTITY_METADATA_PREFIX}${entityId}`,
-              forceRefresh: true,
-              request: () => Promise.resolve(metadata)
-            }).then(cachedMetadata => {
-              resolve(cachedMetadata)
-            })
-          })
-          .catch(error => reject(error))
+  ): Promise<EntityMetadata> =>
+    poolPromise.then(pool =>
+      EntityApi.setMetadata(entityId, metadata, wallet, pool).then(() => {
+        // Update cache with new data
+        return CacheService.get<EntityMetadata>({
+          key: `${CACHED_ENTITY_METADATA_PREFIX}${entityId}`,
+          forceRefresh: true,
+          request: () => Promise.resolve(metadata)
+        })
       })
-    })
-  }
+    )
 
   return (
     <UseEntityContext.Provider
