@@ -1,11 +1,9 @@
 # Changelog
-## 0.9.11
-
-- Add new cache on the entity hook
-- Add update method to allow update the entity
-
 ## 0.9.10
 
+- Update dvote-js to 1.9.15
+- Add new cache on the entity hook
+- Add update method to allow update the entity
 - Fix reload process caused by state.
 - Improve cache process and processes.
 - Use state for the processes
