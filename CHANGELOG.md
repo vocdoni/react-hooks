@@ -1,4 +1,8 @@
 # Changelog
+
+## 0.10.0
+- Version bump os dvote-js to v1.10.1
+
 ## 0.9.10
 
 - Update dvote-js to 1.9.15
