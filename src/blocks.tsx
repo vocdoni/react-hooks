@@ -114,7 +114,7 @@ export function UseBlockStatusProvider({ children }: { children: ReactNode }) {
       disposed = true
       clearInterval(interval)
     }
-  }, [])
+  }, [poolPromise])
 
   // Loader
   const fetchBlockStatus = () => {

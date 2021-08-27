@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.1
+
+- `useBlockStatus` and `useBlockHeight` now refresh when switching networks
+
 ## 0.10.0
 - Version bump os dvote-js to v1.10.1
 
