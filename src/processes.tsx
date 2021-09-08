@@ -2,23 +2,23 @@ import React, { ReactNode, useContext, useEffect, useState } from 'react'
 import { Nullable } from './types'
 import { usePool } from './pool'
 import {
-  IProcessSummary,
-  IProcessState,
+  ProcessSummary,
+  ProcessState,
   VotingApi,
   ProcessMetadata,
   FileApi,
   VochainProcessStatus,
-  IProcessDetails
+  ProcessDetails
 } from 'dvote-js'
 import { CacheService } from './cache-service'
 
 interface IProcessContext {
-  resolveProcessState: (processId: string) => Promise<Nullable<IProcessState>>
-  refreshProcessState: (processId: string) => Promise<IProcessState>
+  resolveProcessState: (processId: string) => Promise<Nullable<ProcessState>>
+  refreshProcessState: (processId: string) => Promise<ProcessState>
   resolveProcessSummary: (
     processId: string
-  ) => Promise<Nullable<IProcessSummary>>
-  refreshProcessSummary: (processId: string) => Promise<IProcessSummary>
+  ) => Promise<Nullable<ProcessSummary>>
+  refreshProcessSummary: (processId: string) => Promise<ProcessSummary>
   resolveProcessMetadata: ({
     processId,
     ipfsUri
@@ -77,7 +77,7 @@ export const UseProcessContext = React.createContext<IProcessContext>({
 /** Resolves the full details of the given process */
 export function useProcess(processId: string) {
   const processContext = useContext(UseProcessContext)
-  const [process, setProcess] = useState<IProcessDetails>()
+  const [process, setProcess] = useState<ProcessDetails>()
   const {
     resolveProcessState,
     resolveProcessMetadata,
@@ -161,7 +161,7 @@ export function useProcess(processId: string) {
 
 export type SummaryProcess = {
   id: string
-  summary?: IProcessSummary
+  summary?: ProcessSummary
   metadata?: ProcessMetadata
 }
 
@@ -190,7 +190,7 @@ export function useProcesses(processIds: string[]) {
   const updateProcessData = (
     processId: string,
     dataKey: 'metadata' | 'summary',
-    data: IProcessSummary | ProcessMetadata
+    data: ProcessSummary | ProcessMetadata
   ) => {
     setProcesses((prevProcesses: SummaryProcess[]) => {
       const updatedProcesses = [...prevProcesses]
@@ -243,7 +243,7 @@ export function useProcesses(processIds: string[]) {
           : refreshProcessSummary
 
         return retrieveSummary(processId)
-          .then((summary: IProcessSummary) => {
+          .then((summary: ProcessSummary) => {
             if (ignore) return
             // NOTE:
             // Launching a metadata fetch without waiting for it
@@ -321,16 +321,16 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
   const loadProcessState = (processId: string) =>
     getProcessState(processId, true)
 
-  const resolveProcessState = (processId: string): Promise<IProcessState> =>
+  const resolveProcessState = (processId: string): Promise<ProcessState> =>
     getProcessState(processId, false)
 
   const getProcessState = (
     processId: string,
     forceRefresh: boolean = false
-  ): Promise<IProcessState> => {
+  ): Promise<ProcessState> => {
     if (!processId) return Promise.resolve(null)
 
-    return CacheService.get<IProcessState>({
+    return CacheService.get<ProcessState>({
       key: `${CacheRegisterPrefix.State}${processId}`,
       forceRefresh,
       request: () =>
@@ -344,7 +344,7 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
 
   const resolveProcessSummary: (
     processId: string
-  ) => Promise<IProcessSummary> = (processId: string) =>
+  ) => Promise<ProcessSummary> = (processId: string) =>
     getProcessSummary(processId, false)
 
   const getProcessSummary = (
@@ -354,7 +354,7 @@ export function UseProcessProvider({ children }: { children: ReactNode }) {
     // Lazy load data, only if needed
     if (!processId) return Promise.resolve(null)
 
-    return CacheService.get<IProcessSummary>({
+    return CacheService.get<ProcessSummary>({
       key: `${CacheRegisterPrefix.Summary}${processId}`,
       forceRefresh,
       request: () =>
