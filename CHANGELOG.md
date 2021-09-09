@@ -1,4 +1,8 @@
 # Changelog
+## 0.11.0
+
+- Update dvote-js to 1.11.2
+- [Breaking] Update process interface definition from `IProcessState` to `IProcessState`
 
 ## 0.10.1
 
