@@ -1,4 +1,10 @@
 # Changelog
+
+## 0.12.0
+
+- Updates dvote-js to 1.13.2
+- [Breaking] Update GatewayPool only compatible with dvote-js version 1.13.2
+
 ## 0.11.0
 
 - Update dvote-js to 1.11.2
