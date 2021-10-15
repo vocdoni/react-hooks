@@ -1,4 +1,8 @@
 # Changelog
+
+## 0.11.1
+- Update dvote-js to 1.12.0
+
 ## 0.11.0
 
 - Update dvote-js to 1.11.2
