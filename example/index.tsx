@@ -8,12 +8,9 @@ import { ProcessStatus } from '@vocdoni/contract-wrappers'
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
 const ENVIRONMENT = "dev"
 const NETWORK_ID = "rinkeby"
-const ENTITY_ID = "0x797B8Eb02e670bcd36AA6146c4766577E8EA9059"
+const ENTITY_ID = "0xf0f8d83cdab2f9514bef0319f1b434267be36b5c"
 const PROCESS_IDS = [
-  "0x732493935542b276402ad380e905d5363df798e19342a4d59c057f02060de313",
-  "0xb499d66d6262e76d35a596d05a8b2a5c53a04431d71be767ab0d39b71c1d7ceb",
-  "0xc0f019b3497412e49107b7eb8e01e72a29e54643aa1e109971c0db7495426539",
-  "0x29a4637797076a0620ecf1f4c6565616bbdbb80ed12df36f4125efe9e12706ad"
+  "0xad2b0e0c93da2bccd1c67e2b866b671ff555f57cb7fb22a169a2e43519e592e4",
 ]
 
 const App = () => {
@@ -44,10 +41,10 @@ const PoolComponent = () => {
     poolPromise
       .then(gwPool => {
         // Do something with the gateway pool instance
-        return VotingApi.getResults(PROCESS_IDS[0], gwPool)
-          .then(results => console.log("RESULTS", results))
+        return VotingApi.getProcessState(PROCESS_IDS[0], gwPool)
+          .then(state => console.log("STATE", state))
       })
-      .catch(err => console.error("RESULTS ERROR", err))
+      .catch(err => console.error("STATE ERROR", err))
   }, [])
 
   return <div>
