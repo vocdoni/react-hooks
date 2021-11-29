@@ -5,7 +5,7 @@ import React, {
   useContext,
   ReactNode
 } from 'react'
-import { BlockStatus, VotingApi } from 'dvote-js'
+import { BlockStatus, VotingApi } from '@vocdoni/voting'
 import { usePool } from './pool'
 import { Nullable } from './types'
 

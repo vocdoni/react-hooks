@@ -21,8 +21,8 @@ import { UsePoolProvider, UseProcessProvider, UseEntityProvider, usePool, usePro
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
 const ENVIRONMENT = "dev" 
-const NETWORK_ID = "goerli"
-const CHAIN_ID = 5
+const NETWORK_ID = "rinkeby"
+const CHAIN_ID = 4
 
 const MyApp = () => {
   return (

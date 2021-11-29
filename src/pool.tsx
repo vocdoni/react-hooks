@@ -5,7 +5,8 @@ import React, {
   useContext,
   ReactNode
 } from 'react'
-import { EthNetworkID, GatewayPool, VocdoniEnvironment } from 'dvote-js'
+import { EthNetworkID, VocdoniEnvironment } from '@vocdoni/common'
+import { GatewayPool } from '@vocdoni/client'
 import { Nullable } from './types'
 import { Deferred, delayedPromise } from './util'
 

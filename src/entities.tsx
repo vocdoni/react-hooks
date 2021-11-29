@@ -2,7 +2,8 @@ import React, { ReactNode, useContext, useEffect, useState } from 'react'
 import { Wallet, Signer } from 'ethers'
 import { Nullable } from './types'
 import { usePool } from './pool'
-import { EntityApi, EntityMetadata } from 'dvote-js'
+import { EntityMetadata } from '@vocdoni/data-models'
+import { EntityApi } from '@vocdoni/voting'
 import { CacheService } from './cache-service'
 
 interface IEntityContext {

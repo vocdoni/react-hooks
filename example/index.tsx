@@ -1,9 +1,9 @@
-import 'react-app-polyfill/ie11'
 import * as React from 'react'
 import { useEffect } from 'react'
 import * as ReactDOM from 'react-dom'
 import { UsePoolProvider, UseProcessProvider, usePool, useProcess, useProcesses, UseEntityProvider, useEntity, UseBlockStatusProvider, useDateAtBlock, useBlockAtDate, useBlockStatus, useBlockHeight, useEntityProcessIdList } from '../src/index'
-import { ProcessStatus, VotingApi } from 'dvote-js'
+import { VotingApi } from '@vocdoni/voting'
+import { ProcessStatus } from '@vocdoni/contract-wrappers'
 
 const BOOTNODE_URI = "https://bootnodes.vocdoni.net/gateways.dev.json"
 const ENVIRONMENT = "dev"
@@ -44,7 +44,7 @@ const PoolComponent = () => {
     poolPromise
       .then(gwPool => {
         // Do something with the gateway pool instance
-        return VotingApi.getResultsDigest(PROCESS_IDS[0], gwPool)
+        return VotingApi.getResults(PROCESS_IDS[0], gwPool)
           .then(results => console.log("RESULTS", results))
       })
       .catch(err => console.error("RESULTS ERROR", err))
@@ -56,7 +56,7 @@ const PoolComponent = () => {
     {pool ? <p>Ready</p> : null}
     {error ? <p>Error: {error}</p> : null}
     {error && pool ? <p><button onClick={refresh}>Refresh</button></p> : null}
-    {error && !pool ? <button onClick={retry}>Retry</button> : null}
+    {error && !pool ? <button onClick={() => retry({})}>Retry</button> : null}
   </div>
 }
 

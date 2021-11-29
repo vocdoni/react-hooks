@@ -4,7 +4,7 @@ import { UsePoolProvider, UseProcessProvider, UseEntityProvider } from '../dist'
 
 const BOOTNODE_URI = 'https://bootnodes.vocdoni.net/gateways.dev.json'
 const ENVIRONMENT = 'dev'
-const NETWORK_ID = 'goerli'
+const NETWORK_ID = 'rinkeby'
 
 describe('it', () => {
   it('renders the UsePoolProvider without crashing', () => {

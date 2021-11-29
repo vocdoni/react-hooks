@@ -5,11 +5,10 @@ import {
   ProcessSummary,
   ProcessState,
   VotingApi,
-  ProcessMetadata,
-  FileApi,
-  VochainProcessStatus,
   ProcessDetails
-} from 'dvote-js'
+} from '@vocdoni/voting'
+import { FileApi } from '@vocdoni/client'
+import { ProcessMetadata, VochainProcessStatus } from '@vocdoni/data-models'
 import { CacheService } from './cache-service'
 
 interface IProcessContext {
@@ -193,7 +192,7 @@ export function useProcesses(processIds: string[]) {
     data: ProcessSummary | ProcessMetadata
   ) => {
     setProcesses((prevProcesses: SummaryProcess[]) => {
-      const updatedProcesses = [...prevProcesses]
+      const updatedProcesses = [].concat(prevProcesses)
 
       for (let processIndex in updatedProcesses) {
         const iterateProcess = updatedProcesses[processIndex]
