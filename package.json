@@ -57,11 +57,11 @@
     "size-limit": [
         {
             "path": "dist/react-hooks.cjs.production.min.js",
-            "limit": "10 KB"
+            "limit": "20 KB"
         },
         {
             "path": "dist/react-hooks.esm.js",
-            "limit": "10 KB"
+            "limit": "60 KB"
         }
     ],
     "devDependencies": {
