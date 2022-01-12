@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.0
+
+- [Breaking] Update dvote-js dependencies to new packages: `common`, `client` and `voting`
+
 ## 0.12.0
 
 - Updates dvote-js to 1.13.2
