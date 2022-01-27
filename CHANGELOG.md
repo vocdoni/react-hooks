@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.0
+
+- Stop retrying a network discovery when the parameters change
+
 ## 0.13.1
 
 - Version bump for `voting` package

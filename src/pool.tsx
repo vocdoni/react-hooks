@@ -11,8 +11,7 @@ import { Nullable } from './types'
 import { Deferred, delayedPromise } from './util'
 
 const RETRY_INTERVAL = 1000 * 5 // 5 seconds
-const RETRY_COUNT_DEFAULT_VALUE = 15
-let initRetryCount = RETRY_COUNT_DEFAULT_VALUE
+const RETRY_COUNT_DEFAULT_VALUE = 5
 
 interface IPoolContext {
   /** The current gateway pool client (use poolPromise instead) */
@@ -28,7 +27,10 @@ interface IPoolContext {
   /** If the initial connection failed, starts the discovery from scratch */
   retry: ({
     retryOnError
-  }: { retryOnError?: boolean } | undefined) => Promise<GatewayPool>
+  }: { retryOnError?: boolean } | undefined) => {
+    promise: Promise<GatewayPool>
+    stopRetry: () => void
+  }
 }
 
 export const UsePoolContext = createContext<IPoolContext>({
@@ -37,7 +39,12 @@ export const UsePoolContext = createContext<IPoolContext>({
   loading: false,
   error: null,
   refresh: () => Promise.reject(new Error('Not ready yet')),
-  retry: () => Promise.reject(new Error('Not ready yet'))
+  retry: () => ({
+    promise: Promise.reject(new Error('Not ready yet')),
+    stopRetry: () => {
+      throw new Error('Not ready yet')
+    }
+  })
 })
 
 export function usePool() {
@@ -56,8 +63,8 @@ export function UsePoolProvider({
   networkId,
   environment,
   children,
-  discoveryTimeout = 2000,
-  minNumGateways = 2
+  discoveryTimeout = 2500,
+  minNumGateways = 1
 }: {
   bootnodeUri: string
   networkId: EthNetworkID
@@ -74,11 +81,12 @@ export function UsePoolProvider({
 
   // Initial load
   useEffect(() => {
-    init({ retryOnError: true })
+    const { stopRetry } = init({ retryOnError: true })
 
     // Cleanup
     return () => {
       pool?.disconnect?.()
+      stopRetry()
     }
   }, [environment, bootnodeUri, networkId])
 
@@ -86,7 +94,12 @@ export function UsePoolProvider({
   const init = ({ retryOnError }: { retryOnError?: boolean } = {}) => {
     setLoading(true)
 
-    return GatewayPool.discover({
+    let initRetryCount = RETRY_COUNT_DEFAULT_VALUE
+    const stopRetry = () => {
+      initRetryCount = -1
+    }
+
+    const promise: Promise<GatewayPool> = GatewayPool.discover({
       bootnodesContentUri: bootnodeUri,
       networkId: networkId,
       timeout: discoveryTimeout,
@@ -118,7 +131,7 @@ export function UsePoolProvider({
 
         if (retryOnError && initRetryCount >= 0) {
           return delayedPromise(
-            () => init({ retryOnError: true }),
+            () => init({ retryOnError: true }).promise,
             RETRY_INTERVAL
           )
         }
@@ -126,6 +139,11 @@ export function UsePoolProvider({
         // Notify promise waiters that the process failed
         throw err
       })
+
+    return {
+      promise,
+      stopRetry
+    }
   }
 
   // Refresh the nodes of an already working pool
