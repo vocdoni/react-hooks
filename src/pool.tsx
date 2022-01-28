@@ -64,7 +64,8 @@ export function UsePoolProvider({
   environment,
   children,
   discoveryTimeout = 2500,
-  minNumGateways = 1
+  minNumGateways = 1,
+  archiveIpnsId = ''
 }: {
   bootnodeUri: string
   networkId: EthNetworkID
@@ -72,6 +73,7 @@ export function UsePoolProvider({
   children: ReactNode
   discoveryTimeout?: number
   minNumGateways?: number
+  archiveIpnsId?: string
 }) {
   const [deferred, setDeferred] = useState(() => new Deferred<GatewayPool>())
 
@@ -104,7 +106,8 @@ export function UsePoolProvider({
       networkId: networkId,
       timeout: discoveryTimeout,
       numberOfGateways: minNumGateways,
-      environment: environment
+      environment: environment,
+      archiveIpnsId: archiveIpnsId
     })
       .then(pool => {
         // Direct values
