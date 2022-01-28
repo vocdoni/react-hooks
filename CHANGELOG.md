@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.1
+
+- Added the `archiveIpnsId` parameter for custom IPNS in the pool discovery process
+
 ## 0.14.0
 
 - Stop retrying a network discovery when the parameters change
