@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.2
+
+- Updated `VotingApi.getProcessList` call for archive support
+
 ## 0.14.1
 
 - Added the `archiveIpnsId` parameter for custom IPNS in the pool discovery process
