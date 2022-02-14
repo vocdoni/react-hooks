@@ -78,8 +78,8 @@
         "typescript": "^3.9.7"
     },
     "dependencies": {
-        "@vocdoni/client": "^1.16.1",
+        "@vocdoni/client": "^1.16.5",
         "@vocdoni/common": "^1.15.1",
-        "@vocdoni/voting": "^1.16.0"
+        "@vocdoni/voting": "^1.16.3"
     }
 }
