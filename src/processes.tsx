@@ -471,9 +471,15 @@ export function useEntityProcessIdList(
 
     const pool = await poolPromise
 
+    const processList = await VotingApi.getProcessList(
+      { fromArchive: true, entityId },
+      pool
+    )
+    result = result.concat(processList)
+
     while (true) {
       const processList = await VotingApi.getProcessList(
-        { entityId, from, ...filters },
+        { fromArchive: false, entityId, from, ...filters },
         pool
       )
       if (processList.length == 0) return result
