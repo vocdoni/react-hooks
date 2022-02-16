@@ -7,7 +7,7 @@ import {
   VotingApi,
   ProcessDetails
 } from '@vocdoni/voting'
-import { FileApi } from '@vocdoni/client'
+import { FileApi, GatewayPool } from '@vocdoni/client'
 import { ProcessMetadata, VochainProcessStatus } from '@vocdoni/data-models'
 import { CacheService } from './cache-service'
 
@@ -465,29 +465,53 @@ export function useEntityProcessIdList(
     }
   }, [entityId])
 
+  /* Get the processes id's from the archive */
+  const getArchiveProcessIdList = async (
+    entityId: string,
+    pool: GatewayPool
+  ): Promise<string[]> => {
+    return VotingApi.getProcessList({ fromArchive: true, entityId }, pool)
+  }
+
+  /* Get the processes id's from the gateway */
+  const getGwProcessIdList = async (
+    entityId: string,
+    from: number,
+    pool: GatewayPool
+  ): Promise<string[]> => {
+    return VotingApi.getProcessList(
+      { fromArchive: false, entityId, from, ...filters },
+      pool
+    )
+  }
+
   const getProcessIdList = async (entityId: string) => {
-    let result: string[] = []
     let from = 0
 
     const pool = await poolPromise
 
-    const processList = await VotingApi.getProcessList(
-      { fromArchive: true, entityId },
-      pool
-    )
-    result = result.concat(processList)
+    let result: string[] = await Promise.all([
+      getArchiveProcessIdList(entityId, pool),
+      getGwProcessIdList(entityId, from, pool)
+    ]).then(result => {
+      from += result[1].length
+      return result.flat(1)
+    })
+
+    if (from === 0) {
+      return result
+    }
 
     while (true) {
       const processList = await VotingApi.getProcessList(
         { fromArchive: false, entityId, from, ...filters },
         pool
       )
-      if (processList.length == 0) return result
+      if (processList.length === 0) return result
 
       result = result.concat(processList.map(id => '0x' + id))
       from += processList.length
     }
-    return result
   }
 
   return { processIds, error, loading }
