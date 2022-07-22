@@ -9,7 +9,7 @@
     "clean": "rm -Rf .cache dist"
   },
   "dependencies": {
-    "@vocdoni/voting": "^1.14.0",
+    "@vocdoni/voting": "^1.16.3",
     "react-app-polyfill": "^1.0.0"
   },
   "alias": {

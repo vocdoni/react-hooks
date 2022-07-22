@@ -67,7 +67,7 @@ export function UsePoolProvider({
   minNumGateways = 1,
   archiveIpnsId = ''
 }: {
-  bootnodeUri: string
+  bootnodeUri: string | string[]
   networkId: EthNetworkID
   environment: VocdoniEnvironment
   children: ReactNode

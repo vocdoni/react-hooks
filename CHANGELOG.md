@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.15.1
+
+- Updated `UsePoolProvider` for supporting multiple bootnodes URLs
+
 ## 0.15.0
 
 - Updated `VotingApi.getProcessList` call for archive support
